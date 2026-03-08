@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESIDENTIAL TERMINAL - MILTON v13.5</title>
+    <title>PRESIDENTIAL TERMINAL - MILTON v14.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         
@@ -99,7 +99,6 @@
         .log-output::-webkit-scrollbar { display: none; }
         .log-output { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Crisp text rendering */
         .block { margin-bottom: 15px; line-height: 1.3; white-space: pre-wrap; text-shadow: none; }
         .block.system { opacity: 0.8; }
         .block.chief { font-weight: bold; color: var(--phosphor); border-left: 3px solid var(--phosphor); padding-left: 15px; text-shadow: 0 0 1px var(--phosphor); }
@@ -152,10 +151,10 @@
         .dict-box {
             flex-grow: 1; border: 1px solid var(--dim); padding: 15px; font-size: 18px; line-height: 1.3; 
             background: rgba(255, 176, 0, 0.05); display: flex; flex-direction: column; overflow-y: auto; min-height: 80px; 
-            text-shadow: none;
+            text-shadow: none; transition: all 0.3s;
         }
         .dict-box::-webkit-scrollbar { display: none; }
-        .context-title { font-weight: bold; font-size: 20px; margin-bottom: 6px; border-bottom: 1px solid var(--phosphor); padding-bottom: 4px; flex-shrink: 0; }
+        .context-title { font-weight: bold; font-size: 20px; margin-bottom: 6px; border-bottom: 1px solid var(--phosphor); padding-bottom: 4px; flex-shrink: 0; transition: color 0.3s, border-color 0.3s;}
         .context-def { margin-bottom: 8px; }
         .context-hist { font-style: italic; opacity: 0.9; border-left: 2px solid var(--phosphor); padding-left: 10px; color: var(--milton); }
 
@@ -234,7 +233,7 @@
             mode: 'macro', subMode: null, turn: 1, maxTurns: 12, monthsToElection: 48,
             gdp: 2.1, unemployment: 5.1, inflation: 4.8, approval: 48, fedCredibility: 80, sp500: 4800, congress: 55, tariffRate: 5.0,
             hasPriceControls: false, currentCrisis: '', miltonAskedThisTurn: false,
-            warTurnTrigger: 99, // Assigned on boot
+            warTurnTrigger: 99, 
             war: { enemyStrength: 100, tension: 50, casualties: 0, expenditure: 0 },
             dark: { narrative: 45, compliance: 50, paranoia: 25, trust: 75 },
             newsQueue: [], futureNews: [] 
@@ -250,8 +249,9 @@
             canvas: document.getElementById('artilleryCanvas')
         };
 
+        // --- DICTIONARY ---
         const contextDict = {
-            'election': { title: "ELECTION COUNTDOWN", def: "The ultimate accountability mechanism.", hist: "Voters almost always punish structural reality if it causes them immediate financial pain." },
+            'election': { title: "ELECTION COUNTDOWN", def: "The ultimate accountability mechanism.", hist: "Voters almost always punish structural reality if it causes them immediate financial pain at the grocery store." },
             'gdp': { title: "GROSS DOMESTIC PRODUCT", def: "Total economic output. Fails to distinguish between productive capital and wasteful deficit spending.", hist: "Juicing GDP with printed money looks like a boom right before it feels like a bust." },
             'unemployment': { title: "UNEMPLOYMENT RATE", def: "The percentage of the labor force without work. A 'natural rate' exists to allow labor to move to where it is needed.", hist: "The Phillips Curve tradeoff is an illusion. Trying to artificially force unemployment to zero via stimulus guarantees runaway inflation." },
             'inflation': { title: "INFLATION (PCE)", def: "Inflation is always and everywhere a monetary phenomenon. It is taxation without representation, driven by expanding the money supply.", hist: "It requires brutal, sustained interest rate hikes to break the psychological loop of inflation once it begins." },
@@ -309,13 +309,32 @@
             'ex': { shortcut: 'ex', name: 'EXIT OPS', effect: () => { endDarkOps(); queueNews("[POLITICS] Spin cycle slows down as administration pivots.", 0); } }
         };
 
+        // --- CRISIS SCENARIOS (Chief Manipulation vs Milton Reality) ---
         const crisisProfiles = {
-            'inflation': { chief: "COS: Inflation is killing us. I strongly advise PRICE CONTROLS [pc] to stop corporate gouging, or initiate DARK OPS [do] to spin the narrative!", milton: "MILTON: Price controls destroy the signaling mechanism of the free market. You will cure high prices with empty supermarket shelves. Restrict the money supply. Raise rates [rr] or cut spending [cs]." },
-            'unemployment': { chief: "COS: The rust belt is bleeding jobs. Authorize MASSIVE STIMULUS [ms], TARIFFS [ta], or launch DARK OPS [do] to distract the populace!", milton: "MILTON: You can juice the GDP today with stimulus, but inflation will eat your approval ratings alive tomorrow. Tariffs secretly tax Americans at the register. Let the market clear via deregulation [dr]." },
-            'market_crash': { chief: "COS: S&P is in freefall! Mega-donors are furious. Demand the Fed execute QUANTITATIVE EASING [qe] or CUT RATES [cr] right this second!", milton: "MILTON: The infamous 'Fed Put.' Capitalism without bankruptcy is like religion without hell. If you rescue Wall Street every time they gamble poorly, they will never learn risk management. Let them take the loss [dn]." },
-            'approval_drop': { chief: "COS: Approval is tanking. We need a quick win. Let's INCREASE SPENDING [is] on handouts, or head into the spin room for DARK OPS [do]!", milton: "MILTON: The government has no money of its own. Every dollar it spends is a dollar it taxed or borrowed from the private sector. You are just taking water from the deep end of the pool and pouring it into the shallow end." },
-            'geopolitical': { chief: "COS: Strait of Hormuz blockaded. We look weak. The General wants to DEPLOY MILITARY [dm], but we could try to NEGOTIATE [ng].", milton: "MILTON: War is the ultimate inflationary engine. It destroys capital and spikes the deficit. A diplomatic solution [ng] avoids the deadweight loss of kinetic action, though it may bruise your political ego." },
-            'stable': { chief: "COS: Numbers look okay, but midterms approach. Let's pass a moderate STIMULUS [ms] just to pad our margins.", milton: "MILTON: The hardest thing for a politician to do is to sit on his hands. The economy is currently breathing on its own. Do not put it on a ventilator just so you can look like a doctor. Doing nothing [dn] is an active, and often the best, policy." }
+            'inflation': { 
+                chief: "CHIEF OF STAFF: Sir, groceries are up 12%. The base is getting crushed and the media is running 24/7 segments on 'Greedflation.' I strongly advise PRICE CONTROLS [pc]. Think of the second-order effect: we cap the prices, the media praises us for fighting corporate monopolies, and our polling rebounds instantly.", 
+                milton: "MILTON: The Chief is confusing optics with economics. If you cap prices below the market clearing rate, producers will simply stop producing. You aren't eliminating the cost, you are converting it into a time-cost via breadlines and black markets. You'll get your positive headline today, and nationwide supply chain failure next month. Restrict the money supply [rr] or [cs]." 
+            },
+            'unemployment': { 
+                chief: "CHIEF OF STAFF: The rust belt is bleeding jobs and union leaders are threatening a general strike. Authorize MASSIVE STIMULUS [ms] or slap TARIFFS [ta] on imports. The downstream effect is vital: we save the factories, the local economies stay afloat, and we lock in the blue-collar vote for a generation. It's an investment in political capital.", 
+                milton: "MILTON: An 'investment' paid for with stolen purchasing power. Tariffs don't protect workers; they subsidize inefficient domestic monopolies by placing a hidden sales tax on 300 million citizens. Stimulus is just taking water from the deep end of the pool and pouring it into the shallow end. Deregulate [dr] and let dead capital reallocate organically." 
+            },
+            'market_crash': { 
+                chief: "CHIEF OF STAFF: The S&P is in freefall! Our mega-donors are getting margin-called and freezing campaign accounts. Demand the Fed execute QUANTITATIVE EASING [qe] or CUT RATES [cr] immediately! The wealth effect is real—if 401ks recover, consumer confidence bounces back, and the donor class opens their checkbooks again.", 
+                milton: "MILTON: The Chief is advocating for the privatization of profits and the socialization of losses. Wall Street took leveraged risks, and now they are holding a gun to the economy's head demanding a bailout. If you print money [qe] to save their equity, you generate profound moral hazard. They will never learn risk management. Let them burn [dn]." 
+            },
+            'approval_drop': { 
+                chief: "CHIEF OF STAFF: We are sub-40%. We're in lame-duck territory, sir. We need to buy back the public's affection. INCREASE SPENDING [is] on direct subsidies. It's immediate liquidity in their pockets. The second-order effect is a massive spike in consumer spending, which will juice the GDP right before they hit the ballot box.", 
+                milton: "MILTON: You are attempting to bribe the electorate with their own grandchildren's money. The 'spending multiplier' is a myth designed to justify bureaucratic expansion. Every dollar you spend is a dollar extracted from the private sector via taxes or debt. You are cannibalizing tomorrow's structural growth for today's polling bump." 
+            },
+            'geopolitical': { 
+                chief: "CHIEF OF STAFF: The Strait of Hormuz is blockaded. We look incredibly weak on the global stage. If we DEPLOY MILITARY [dm], we project strength. Wars unite the country—it's the classic rally-around-the-flag effect. Defense contractors get paid, unemployment drops as we ramp up production, and you look like a wartime President.", 
+                milton: "MILTON: The broken window fallacy on a global scale. Yes, building bombs employs people, but those bombs generate zero structural value—they are built exclusively to be destroyed. War is the ultimate engine of capital destruction and inflation. Negotiating [ng] hurts your political pride, but kinetic action bankrupts the treasury." 
+            },
+            'stable': { 
+                chief: "CHIEF OF STAFF: The metrics are fine, but 'fine' doesn't motivate voters. We need a narrative. Let's pass a STIMULUS [ms] or announce a new spending project [is]. It shows we are 'building the future.' The downstream effect is pure momentum going into November. We can't afford to just sit here looking idle.", 
+                milton: "MILTON: The hardest discipline for a politician is knowing when to do absolutely nothing. The system is currently clearing its own ledgers. The Chief wants you to inject artificial volatility into a stable system just to generate campaign footage. Resist the urge to meddle. [dn]" 
+            }
         };
 
         // --- AUDIO ENGINE ---
@@ -466,8 +485,8 @@
                     <div class="cmd-item">[cr] Rate Cut</div> <div class="cmd-item">[ta] Tariffs</div>
                     <div class="cmd-item">[is] Inc Spend</div> <div class="cmd-item">[ft] Free Trade</div>
                     <div class="cmd-item">[cs] Cut Spend</div> <div class="cmd-item">[pc] Price Ctrl</div>
-                    <div class="cmd-item">[tx] Raise Taxes</div> <div class="cmd-item">[do] Dark Ops</div>
-                    <div class="cmd-item">[qe] Quant Ease</div> <div class="cmd-item">[dn] Do Nothing</div>
+                    <div class="cmd-item">[tx] Raise Taxes</div><div class="cmd-item">[qe] Quant Ease</div>
+                    <div class="cmd-item">[dn] Do Nothing</div> <div class="cmd-item" style="color:var(--dark)">[do] Dark Ops</div>
                     ${state.currentCrisis === 'geopolitical' ? '<div class="cmd-item" style="color:var(--danger); grid-column: span 2; margin-top:5px; text-align:center;">[dm] Deploy Military / [ng] Negotiate</div>' : ''}
                 </div>
             `;
@@ -557,9 +576,7 @@
                     { type: 'labor', msg: "[SHOCK] Historic port strike freezes national supply chain.", eff: () => { state.inflation += 0.8; state.unemployment += 0.5; } }
                 ];
                 let shock = shocks[Math.floor(Math.random() * shocks.length)];
-                playBell(true);
-                print(shock.msg, 'danger');
-                queueNews(shock.msg, 0);
+                playBell(true); print(shock.msg, 'danger'); queueNews(shock.msg, 0);
                 shock.eff();
             }
         }
@@ -578,7 +595,7 @@
             setTimeout(() => {
                 print("SYSTEM MILTON BOOT... OK"); print("AUTHORIZATION: POTUS... CONFIRMED");
                 print("--------------------------------------------------");
-                print("TUTORIAL:\nYour Chief of Staff advises on political optics.\nType [am] to ASK MILTON for structural economic analysis.\nAchieve the Targets in the [TARGET] column to stabilize.\nChain directives using commas (e.g., rr, cs, ta).");
+                print("TUTORIAL:\nYour Chief of Staff advises on political optics. They will try to manipulate you to ensure your survival.\nType [am] to ASK MILTON to deconstruct their logic.\nAchieve the Targets in the [TARGET] column to stabilize.\nChain directives using commas (e.g., rr, cs, ta).");
                 print("--------------------------------------------------\n");
                 DOM.dash.style.visibility = 'visible'; 
                 processTicker(); updateDashboard(); runTurn();
@@ -606,10 +623,8 @@
             else { print("GENERAL: Withdrawal complete. We are tucking tail.", 'general'); state.approval -= 20; queueNews("[GLOBAL] Forces withdraw. Administration facing harsh criticism.", 0); }
             
             print(`MILTON: The war is over. Time to pay the bill. This deficit spending will now hit the macro economy.`, 'milton');
-            let infHit = (state.war.expenditure / 10);
-            let gdpHit = (state.war.expenditure / 20);
-            state.inflation += infHit;
-            state.gdp -= gdpHit;
+            let infHit = (state.war.expenditure / 10); let gdpHit = (state.war.expenditure / 20);
+            state.inflation += infHit; state.gdp -= gdpHit;
             
             updateDashboard(); processTicker(); setTimeout(advanceTimeline, 1000);
         }
@@ -648,7 +663,6 @@
         function advanceTimeline() {
             state.turn++; state.monthsToElection -= 4;
             
-            // Natural structural drift (Friedman Path)
             if (state.inflation <= 2.5 && state.unemployment <= 5.0 && state.mode === 'macro') {
                 state.gdp += 0.2; print("MILTON: Sound money and stable prices are working. The market is generating organic capital without interference.", 'milton');
             }
@@ -682,7 +696,7 @@
             let safeW = DOM.canvas.width;
             artState.targetX = Math.max(150, Math.min(safeW - 100, Math.random() * (safeW - 250) + 150));
             updateDashboard(); drawArtilleryBase();
-            print("SYSTEM: ARTILLERY TARGETING ACTIVE. INPUT ANGLE, YIELD (e.g. 45, 80).", 'danger');
+            print("SYSTEM: ARTILLERY TARGETING ACTIVE. INPUT ANGLE AND YIELD (e.g., 45, 80).", 'danger');
             setTimeout(enableInput, 100); 
         }
 
@@ -760,7 +774,6 @@
             if (rawVal === 'reset' || rawVal === 'rst') { location.reload(); return; }
             if (state.monthsToElection <= 0) { print("SYSTEM: SIMULATION OVER. TYPE 'RESET' TO RESTART.", 'danger'); enableInput(); return; }
 
-            // Fix for Artillery input parsing (handles commas, spaces, or both)
             if (state.subMode === 'artillery') {
                 if (rawVal === 'wd' || rawVal === 'withdraw') {
                     if (artLoopId) cancelAnimationFrame(artLoopId);
