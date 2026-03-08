@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESIDENTIAL TERMINAL - SYSTEM MILTON v6.0</title>
+    <title>PRESIDENTIAL TERMINAL - SYSTEM MILTON v6.1</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
         
@@ -342,6 +342,7 @@
                         <div class="cmd-item">Free Trade <span>[ft]</span></div>
                         <div class="cmd-item">Price Controls <span>[pc]</span></div>
                         <div class="cmd-item">Do Nothing <span>[dn]</span></div>
+                        <div class="cmd-item extreme">Deploy Military <span>[dm]</span></div>
                         <div class="cmd-item extreme">Martial Law <span>[ml]</span></div>
                         <div class="cmd-item extreme">Nuke <span>[nk]</span></div>
                     </div>
@@ -439,9 +440,9 @@
             {
                 triggerReq: () => state.turn > 2 && Math.random() < 0.2,
                 execute: async () => {
-                    await addMessage("SYSTEM: GLOBAL OIL SHOCK. STRAIT OF HORMUZ BLOCKADED.", 'danger');
-                    await addMessage("GENERAL: The Navy is standing by to forcefully clear the strait. Give the word.", 'general');
-                    await addMessage("MILTON: An energy shock. The textbook response is to let prices rise so demand falls and alternative energy becomes viable. Do not implement price controls on gas, or you will create lines around the block by tomorrow morning.", 'milton');
+                    await addMessage("SYSTEM: GLOBAL OIL SHOCK. STRAIT OF HORMUZ BLOCKADED. INFLATION SPIKING.", 'danger');
+                    await addMessage("GENERAL: The Navy is standing by to forcefully clear the strait. Give the word to DEPLOY MILITARY [dm].", 'general');
+                    await addMessage("MILTON: An energy shock. The textbook response is to let prices rise so demand falls and alternative energy becomes viable. Do not implement price controls on gas, or you will create lines around the block by tomorrow morning. A military adventure will secure the oil, but at a massive cost to the deficit.", 'milton');
                     state.inflation += 2.0;
                     state.gdp -= 1.0;
                 }
@@ -462,6 +463,7 @@
             'do nothing': { shortcut: 'dn', effect: () => { state.gdp -= 0.1; state.inflation -= 0.2; state.sp500 += 50; } },
             
             // Extreme Commands
+            'deploy military': { shortcut: 'dm', effect: () => { state.inflation -= 2.0; state.gdp -= 1.0; state.sp500 -= 400; state.approval += 5; state.congress += 10; } },
             'martial law': { shortcut: 'ml', effect: () => { state.gdp -= 2.5; state.unemployment += 3.0; state.approval -= 15; state.congress -= 25; state.sp500 -= 800; } },
             'nuke': { shortcut: 'nk', effect: () => { state.gdp -= 8.0; state.inflation += 10.0; state.unemployment += 5.0; state.approval += 10; /* rally effect */ state.congress -= 40; state.sp500 -= 2500; } }
         };
@@ -673,6 +675,9 @@
                 await addMessage("MILTON: I suppose atomic fire is one way to stimulate domestic manufacturing... rebuilding the ashes.", 'milton');
             } else if (resolvedName === 'MARTIAL LAW') {
                 await addMessage("GENERAL: TROOPS DEPLOYED. CURFEWS ENFORCED. STREETS SECURED.", 'general');
+            } else if (resolvedName === 'DEPLOY MILITARY') {
+                await addMessage("GENERAL: CARRIER STRIKE GROUP DEPLOYED. TARGETS NEUTRALIZED. SUPPLY LINES SECURED.", 'general');
+                await addMessage("MILTON: A very expensive way to lower the price of gas, Mr. President. The deficit will reflect this adventure.", 'milton');
             }
 
             // Apply immediate political/economic logic
