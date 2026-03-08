@@ -7,7 +7,11 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
         
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
         
         body {
             background: #1a1a1a;
@@ -15,15 +19,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             padding: 20px;
-            overflow: hidden;
         }
         
         .crt-monitor {
             width: 98vw;
             max-width: 1400px;
             height: 95vh;
+            max-height: 900px;
             background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
             border-radius: 35px;
             padding: 35px 35px 70px 35px;
@@ -34,8 +38,6 @@
                 0 0 0 20px #3d3d3d,
                 0 25px 60px rgba(0,0,0,0.7),
                 inset -10px -10px 40px rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
         }
         
         .crt-monitor::before {
@@ -46,28 +48,24 @@
             border-radius: 20px;
             padding: 8px;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
-            pointer-events: none;
         }
         
         .screen {
             background: #1a1a1a;
             border-radius: 5px;
             overflow: hidden;
-            flex-grow: 1;
+            height: calc(100% - 40px);
             position: relative;
             box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
-            display: flex;
-            flex-direction: column;
         }
         
         .screen-content {
-            padding: 25px 30px;
-            height: 100%;
+            padding: 25px 30px 15px 30px; /* Reduced bottom padding */
+            height: calc(100% - 40px);
+            overflow-y: auto;
+            color: #4af626;
             display: flex;
             flex-direction: column;
-            color: #4af626;
-            z-index: 15;
-            position: relative;
         }
         
         .scanlines {
@@ -83,7 +81,7 @@
                     rgba(74,246,38,0.02) 4px
                 );
             pointer-events: none;
-            z-index: 20;
+            z-index: 10;
         }
         
         .phosphor-glow {
@@ -91,7 +89,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background: radial-gradient(ellipse at center, rgba(74,246,38,0.1) 0%, transparent 70%);
             pointer-events: none;
-            z-index: 19;
+            z-index: 9;
         }
         
         .flicker {
@@ -100,7 +98,7 @@
             background: rgba(74,246,38,0.01);
             animation: flicker 0.15s infinite;
             pointer-events: none;
-            z-index: 18;
+            z-index: 8;
         }
         
         @keyframes flicker {
@@ -117,51 +115,66 @@
             display: flex;
             justify-content: space-between;
             text-shadow: 0 0 5px rgba(74,246,38,0.5);
-            flex-shrink: 0;
         }
         
         .status-line { 
             font-size: 11px; 
-            margin-bottom: 15px; 
+            margin-bottom: 6px; 
             color: #4af626; 
             opacity: 0.9;
             text-shadow: 0 0 3px rgba(74,246,38,0.5);
-            flex-shrink: 0;
         }
-
-        .main-display {
+        
+        .main-content {
             display: flex;
-            flex-grow: 1;
-            overflow: hidden;
-            gap: 20px;
+            gap: 15px;
+            flex: 1;
+            min-height: 200px; /* Minimum height for message area */
+        }
+        
+        .message-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden; /* Prevents content from spilling over */
         }
         
         .message-area {
-            flex-grow: 1;
             overflow-y: auto;
-            padding-right: 15px;
+            max-height: calc(100% - 45px); /* Space for bottom UI elements */
+            padding-right: 5px;
         }
         
-        .message-area::-webkit-scrollbar { width: 6px; }
-        .message-area::-webkit-scrollbar-thumb { 
-            background: rgba(74,246,38,0.3); 
-            border-radius: 3px;
+        .message-wrapper::-webkit-scrollbar { width: 8px; }
+        .message-wrapper::-webkit-scrollbar-track {
+            background: rgba(74,246,38,0.1);
+            border-radius: 4px;
+        }
+        .message-wrapper::-webkit-scrollbar-thumb { 
+            background: rgba(74,246,38,0.5); 
+            border-radius: 4px;
         }
         
-        .msg { margin-bottom: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; padding-left: 10px; }
+        .msg { margin-bottom: 10px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; padding-left: 10px; }
         .msg.system { color: #4af626; text-shadow: 0 0 8px rgba(74,246,38,0.6); }
         .msg.president { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.4); }
-        .msg.warning { color: #ff9f43; text-shadow: 0 0 8px rgba(255,159,67,0.6); }
-        .msg.danger { color: #ff6b6b; text-shadow: 0 0 8px rgba(255,107,107,0.6); }
-        .msg.success { color: #4af626; font-weight: bold; text-shadow: 0 0 10px rgba(74,246,38,0.8); }
-        .msg.atlas { color: #00ffff; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,255,0.8); border-left: 2px solid #00ffff; padding-left: 15px; }
+        .msg.warning { 
+            color: #ff9f43; 
+            text-shadow: 0 0 8px rgba(255,159,67,0.6);
+        }
+        .msg.danger { 
+            color: #ff6b6b; 
+            text-shadow: 0 0 8px rgba(255,107,107,0.6);
+        }
+        .msg.success { 
+            color: #4af626; 
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(74,246,38,0.8);
+        }
         
-        .sidebar {
-            width: 320px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        /* Dashboard - now inside the main content area */
+        .dashboard-wrapper {
+            width: 250px;
+            flex-shrink: 0; /* Prevents shrinking on small screens */
         }
         
         .dashboard {
@@ -170,7 +183,7 @@
             padding: 15px; 
             font-size: 11px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            height: fit-content;
         }
         
         .dash-header { 
@@ -183,42 +196,23 @@
         .dash-label { color: #4af626; opacity: 0.9; text-shadow: 0 0 3px rgba(74,246,38,0.5); }
         .dash-value { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.5); }
         
-        .atlas-section {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #00ffff;
-        }
-        .atlas-label { color: #00ffff; opacity: 0.9; text-shadow: 0 0 3px rgba(0,255,255,0.5); font-weight: bold; }
-        .atlas-value { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.8); font-weight: bold; }
-
-        .info-panel {
-            border: 1px dashed #4af626;
-            padding: 10px;
-            font-size: 10px;
-            color: #4af626;
-            opacity: 0.7;
-            text-shadow: 0 0 3px rgba(74,246,38,0.5);
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
+        /* Turn indicator */
+        .turn-indicator { 
+            position: absolute; bottom: 170px; left: 35px; font-size: 10px; opacity: 0.7; text-shadow: 0 0 3px rgba(74,246,38,0.5);
         }
         
-        .footer-controls {
-            flex-shrink: 0;
-            margin-top: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        /* Help text */
+        .help-text { 
+            position: absolute; bottom: 160px; right: 35px; font-size: 9px; color: #4af626; opacity: 0.5; text-align: right; text-shadow: 0 0 2px rgba(74,246,38,0.3);
         }
-
+        
+        /* Command line - now properly positioned */
         .cmd-line {
+            margin-top: auto; /* Pushes to bottom of flex container */
+            padding-top: 15px;
+            border-top: 1px dashed #4af626;
             display: flex;
             align-items: center;
-            padding-top: 10px;
-            border-top: 1px dashed #4af626;
         }
         
         .prompt { 
@@ -237,7 +231,6 @@
             flex-grow: 1;
             outline: none;
             text-shadow: 0 0 8px rgba(74,246,38,0.6);
-            text-transform: lowercase;
         }
         
         input[type="text"]:focus {
@@ -246,11 +239,6 @@
             padding: 2px 5px;
         }
         
-        input[type="text"]:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
         .typing-cursor { display: inline-block; width: 8px; height: 16px; background: #4af626; animation: blink 0.8s infinite; vertical-align: middle; margin-left: 5px; }
         
         @keyframes blink { 
@@ -258,6 +246,7 @@
             51%, 100% { opacity: 0; } 
         }
         
+        /* Power button */
         .power-btn {
             position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%);
             width: 70px; height: 70px; 
@@ -281,8 +270,9 @@
         
         .power-icon { font-size: 32px; color: #ffcc00; text-shadow: 0 0 10px rgba(255,204,0,0.6); }
         
+        /* Sound toggle */
         .sound-toggle {
-            position: absolute; top: 50px; left: 25px;
+            position: absolute; top: 50px; left: 35px;
             background: rgba(74,246,38,0.1);
             border: 1px solid #4af626;
             padding: 5px 10px;
@@ -290,10 +280,34 @@
             font-size: 9px;
             cursor: pointer;
             color: #4af626;
-            z-index: 30;
+        }
+        
+        .sound-toggle:hover { background: rgba(74,246,38,0.2); }
+        
+        /* Tutorial box */
+        .tutorial-box {
+            background: rgba(74,246,38,0.1);
+            border-left: 3px solid #4af626;
+            padding: 15px; margin-bottom: 20px; text-shadow: none; border-radius: 3px 0 0 3px;
+        }
+        
+        .tutorial-box h3 { color: #ffcc00; margin-bottom: 8px; font-size: 14px; text-shadow: 0 0 5px rgba(255,204,0,0.6); }
+        .tutorial-box p { font-size: 11px; line-height: 1.6; margin: 5px 0; color: #e8f5c9; }
+        
+        .command-list { 
+            background: rgba(74,246,38,0.05); padding: 12px; border-radius: 4px; font-size: 10px; margin-top: 10px;
+        }
+        
+        .command-list h4 { color: #ffcc00; margin-bottom: 8px; text-shadow: 0 0 3px rgba(255,204,0,0.6); font-size: 11px;}
+        .command-list code { 
+            display: block; background: rgba(74,246,38,0.15); padding: 4px 8px; margin: 4px 0; border-radius: 3px; text-shadow: none; color: #aaffaa;
         }
 
-        .sound-toggle:hover { background: rgba(74,246,38,0.2); }
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; }
+            .dashboard-wrapper { width: auto; order: -1; }
+            .turn-indicator, .help-text { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -317,38 +331,32 @@
                 
                 <div class="status-line" id="statusLine">SYSTEM STANDBY - PRESS POWER BUTTON TO START</div>
                 
-                <div class="main-display">
-                    <div class="message-area" id="msgArea"></div>
+                <div class="main-content">
+                    <div class="message-wrapper">
+                        <div class="message-area" id="msgArea"></div>
+                        
+                        <div class="turn-indicator" id="turnIndicator"></div>
+                        <div class="help-text" id="helpText">TYPE COMMANDS | PRESS ENTER TO SUBMIT</div>
+                    </div>
                     
-                    <div class="sidebar">
+                    <div class="dashboard-wrapper">
                         <div class="dashboard" id="dashboard"></div>
-                        <div class="info-panel" id="infoPanel" style="display: none;">
-                            <div class="info-row">
-                                <span id="turnIndicator">TURN: 1/12</span>
-                            </div>
-                            <div class="info-row">
-                                <span>TYPE COMMANDS & PRESS ENTER</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 
-                <div class="footer-controls">
-                    <div class="cmd-line">
-                        <span class="prompt">POTUS@WHITEHOUSE:~$</span>
-                        <input type="text" id="cmd" placeholder="Enter command..." disabled autocomplete="off">
-                    </div>
+                <div class="cmd-line">
+                    <span class="prompt">POTUS@WHITEHOUSE:~$</span>
+                    <input type="text" id="cmd" placeholder="Enter command..." disabled autocomplete="off">
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Game State encompassing core economic data + structural framework vectors
+        // Game State
         const state = {
-            turn: 1, maxTurns: 12, gdp: 4.2, unemployment: 3.8, inflation: 2.1,
-            approval: 58, fedCredibility: 72, oilPrice: 75, 
-            uagIndex: 88, tollExtraction: 64, // ATLAS metrics
+            turn: 1, maxTurns: 8, gdp: 4.2, unemployment: 3.8, inflation: 2.1,
+            approval: 58, fedCredibility: 72, transparency: 60, oilPrice: 75, 
             typingSpeed: 30, systemOn: false, soundEnabled: true
         };
 
@@ -356,128 +364,76 @@
         const cmdInput = document.getElementById('cmd');
         const dashboard = document.getElementById('dashboard');
         const statusLine = document.getElementById('statusLine');
-        const infoPanel = document.getElementById('infoPanel');
         
-        // --- ADVANCED AUDIO ENGINE ---
+        // Audio context for retro sounds
         let audioCtx;
-        let noiseBuffer;
-        let humOscillator;
-
-        function initAudio() {
-            if (!audioCtx && state.soundEnabled) {
-                try {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    generateNoiseBuffer();
-                } catch(e) {
-                    console.error('Web Audio API error:', e);
-                    toggleSound(false);
-                }
-            }
-        }
-
-        function generateNoiseBuffer() {
-            const bufferSize = audioCtx.sampleRate * 2; 
-            noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1;
-            }
-        }
-
-        function playHum() {
-            if (!audioCtx || !state.soundEnabled || humOscillator) return;
-            humOscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            humOscillator.type = 'sine';
-            humOscillator.frequency.value = 60; // 60Hz grounding hum
-            gainNode.gain.value = 0.015;
-            humOscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            humOscillator.start();
-        }
-
-        function stopHum() {
-            if (humOscillator) {
-                humOscillator.stop();
-                humOscillator.disconnect();
-                humOscillator = null;
-            }
-        }
-
+        
+        // Generate keyboard click sound using Web Audio API
         function playKeyClick() {
-            if (!state.soundEnabled || !audioCtx || !noiseBuffer) return;
+            if (!state.soundEnabled || !audioCtx) return;
             
-            // Mechanical clack combines a tight noise burst with a low square wave pulse
-            const noiseSource = audioCtx.createBufferSource();
-            noiseSource.buffer = noiseBuffer;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
             
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'highpass';
-            filter.frequency.value = 1000;
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
             
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.02);
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.03);
             
-            noiseSource.connect(filter);
-            filter.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
             
-            const osc = audioCtx.createOscillator();
-            const oscGain = audioCtx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.03);
-            
-            oscGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            oscGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
-            
-            osc.connect(oscGain);
-            oscGain.connect(audioCtx.destination);
-            
-            noiseSource.start();
-            osc.start();
-            noiseSource.stop(audioCtx.currentTime + 0.05);
-            osc.stop(audioCtx.currentTime + 0.05);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.03);
         }
 
-        function playHDDSeek() {
-            if (!state.soundEnabled || !audioCtx || !noiseBuffer) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            // Rapidly fluctuating frequency for mechanical read/write sound
-            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.02);
-            osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.04);
-            osc.frequency.linearRampToValueAtTime(1500, audioCtx.currentTime + 0.06);
+        // Typewriter text sound
+        function playTypeSound() {
+            if (!state.soundEnabled || !audioCtx) return;
             
-            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
             
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.08);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            
+            gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.05);
+            
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.05);
         }
 
+        // Error sound
         function playErrorSound() {
             if (!state.soundEnabled || !audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.2);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+            
+            gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.15);
         }
 
+        // Success sound
         function playSuccessSound() {
             if (!state.soundEnabled || !audioCtx) return;
+            
             const notes = [440, 554, 659];
             notes.forEach((freq, i) => {
                 setTimeout(() => {
@@ -485,69 +441,55 @@
                     const gain = audioCtx.createGain();
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
-                    osc.type = 'square';
+                    
+                    osc.type = 'sine';
                     osc.frequency.value = freq;
-                    gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.15);
-                }, i * 80);
+                    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.2);
+                }, i * 100);
             });
         }
 
-        // --- COMMAND PARSING & LOGIC ---
-
-        const commandEffects = {
-            'cut rates': { msg: 'INTEREST RATES CUT BY 0.25%. LIQUIDITY INJECTED.', gdp: 0.35, approval: 2, inflation: 0.28, uagIndex: 2, tollExtraction: 4 },
-            'increase spending': { msg: 'INFRASTRUCTURE SPENDING +$50B. CONTRACTS AWARDED.', gdp: 0.4, unemployment: -0.12, inflation: 0.6, tollExtraction: 6 },
-            'massive stimulus': { msg: 'MASSIVE PRE-ELECTION STIMULUS. MONEY SUPPLY EXPANDED.', gdp: 0.7, unemployment: -0.2, inflation: 0.9, uagIndex: 8, tollExtraction: 12 },
-            'suppress wages': { msg: 'WAGE GROWTH ARTIFICIALLY RESTRAINED.', inflation: -0.35, unemployment: 0.4, tollExtraction: 5 },
-            'wage controls': { msg: 'EXECUTIVE WAGE CAPS ENFORCED. MARKET DISTORTED.', inflation: -0.4, unemployment: 0.5, approval: -2, uagIndex: 12 },
-            'tariffs': { msg: 'NEW TARIFFS IMPOSED. SUPPLY CHAINS REROUTED.', inflation: 0.5, gdp: -0.3, oilPrice: 4, uagIndex: 5 },
-            'escalate trade war': { msg: 'FULL TRADE WAR DECLARED.', inflation: 0.7, gdp: -0.5, oilPrice: 12, tollExtraction: 8 },
-            'pressure fed': { msg: 'EXECUTIVE BRANCH PRESSURES CENTRAL BANK.', approval: 3.2, fedCredibility: -9.5, uagIndex: 4 },
-            'cut spending': { msg: 'GOVERNMENT SPENDING SEVERELY CUT. DEFICIT COOLED.', inflation: -0.4, gdp: -0.3, tollExtraction: -5 },
-            'price controls': { msg: 'COMPREHENSIVE PRICE CONTROLS IMPOSED.', inflation: -0.6, gdp: -0.8, uagIndex: 20 },
-            'audit federal reserve': { msg: 'FULL CONGRESSIONAL AUDIT OF THE FEDERAL RESERVE INITIATED.', fedCredibility: 5, uagIndex: -15, tollExtraction: -12, type: 'atlas' },
-            'federal independence': { msg: 'FEDERAL POLICY INDEPENDENCE DECLARED. ALGORITHMIC TIES SEVERED.', fedCredibility: 10, approval: -3, uagIndex: -12, tollExtraction: -8 },
-            'decentralize grid': { msg: 'LOCALIZED POWER AND DATA SOVEREIGNTY SUBSIDIZED.', gdp: 0.1, uagIndex: -20, tollExtraction: -15, type: 'atlas' },
-            'dismantle algorithmic governance': { msg: 'EXECUTIVE ORDER: CORPORATE UNIFIED ALGORITHMIC GOVERNANCE ILLEGAL.', gdp: -0.4, approval: 8, uagIndex: -35, tollExtraction: -25, type: 'atlas' },
-            'do nothing': { msg: 'NO INTERVENTION. MARKETS LEFT TO NATURALLY CORRECT.', uagIndex: -2, tollExtraction: -1 }
-        };
+        // Initialize audio context on user interaction
+        function initAudio() {
+            if (!audioCtx && state.soundEnabled) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch(e) {
+                    console.log('Web Audio API not supported');
+                    toggleSound(false);
+                }
+            }
+        }
 
         function focusInput() {
-            if (state.systemOn && !cmdInput.disabled) {
-                if (state.soundEnabled) initAudio();
-                cmdInput.focus();
-            }
+            if (state.systemOn && state.soundEnabled) initAudio();
+            cmdInput.focus();
         }
 
         async function bootSequence() {
             state.typingSpeed = 25;
+            
             const messages = [
                 'SYSTEM MILTON v4.0 BOOT SEQUENCE INITIATED',
                 '',
-                'CHECKING HARDWARE... 128GB RAM OK',
-                'LOADING APPLE SILICON KERNEL... OK', 
-                'MOUNTING LOCAL AI INFRASTRUCTURE... MSTY MIGRATION DETECTED',
-                'VERIFYING SECURE AIRGAP... ENCRYPTED',
-                'INITIALIZING ATLAS STRUCTURAL VECTORS...',
-                'CALIBRATING TOLL BOOTH EXTRACTION METRICS...',
+                'CHECKING MEMORY... 64KB OK',
+                'LOADING KERNEL... OK', 
+                'VERIFYING SECURE CONNECTION... ENCRYPTED',
+                'INITIALIZING ECONOMIC MODULES...',
+                'CALIBRATING DASHBOARD PARAMETERS...',
+                'ESTABLISHING FED CREDIBILITY INTERFACE...',
                 '',
                 'SYSTEM READY.'
             ];
             
             for (let msg of messages) {
                 if (!state.systemOn) break;
-                if (state.soundEnabled) playHDDSeek();
                 await addMessage(msg, 'system');
-                await new Promise(r => setTimeout(r, 150)); // artificial boot delay
             }
-            
-            cmdInput.disabled = false;
-            infoPanel.style.display = 'block';
-            buildDashboard();
-            focusInput();
         }
 
         async function startSystem() {
@@ -555,10 +497,10 @@
             if (state.systemOn || !powerBtn) return;
             
             state.systemOn = true;
-            statusLine.textContent = 'CONNECTED TO SECURE TERMINAL [AIRGAPPED]';
+            statusLine.textContent = 'CONNECTED TO WHITEHOUSE SECURE TERMINAL [ENCRYPTED]';
             
+            // Initialize audio on first user interaction
             initAudio();
-            playHum();
             playSuccessSound();
             
             powerBtn.style.opacity = '0.5';
@@ -568,27 +510,33 @@
             
             const tutorialMsg = `
 ====================================================
-        TUTORIAL - STRUCTURAL OVERVIEW
+        TUTORIAL - HOW TO USE THIS SYSTEM
 ====================================================
 
-YOU ARE THE EXECUTIVE. I AM MILTON.
-THIS SYSTEM MAPS POLICY TO STRUCTURAL INCENTIVES.
+YOU ARE THE PRESIDENT. I AM MILTON, 
+YOUR ECONOMIC ADVISORY SYSTEM BASED ON PRINCIPLES 
+OF MARKET INCENTIVES AND INSTITUTIONAL ANALYSIS.
 
-MONITOR THE DASHBOARD. BEYOND STANDARD METRICS,
-YOU MUST NOW TRACK STRUCTURAL PARASITISM:
+EACH COMMAND YOU ENTER REPRESENTS A POLICY DECISION.
+EVERY DECISION HAS TRADE-OFFS: SHORT-TERM GAINS OFTEN
+COME WITH LONG-TERM COSTS.
 
-  • UAG INDEX: Unified Algorithmic Governance. The
-    degree to which institutional predictive models 
-    control citizen behavior. (LOWER IS BETTER)
-    
-  • TOLL EXTRACTION: The percentage of economic 
-    velocity captured by corporate/financial 
-    rent-seeking mechanisms. (LOWER IS BETTER)
+WATCH YOUR DASHBOARD - IT TRACKS THE CONSEQUENCES 
+OF YOUR CHOICES IN REAL-TIME.
+
+KEY METRICS:
+  • GDP GROWTH = Economic expansion (lower is bad)
+  • UNEMPLOYMENT = Jobs lost (higher is bad)  
+  • INFLATION = Price increases (above 3% hurts voters)
+  • APPROVAL = Public satisfaction (below 40% = election loss)
+  • FED CREDIBILITY = Central bank trust (below 40% = crisis!)
 
 COMMANDS AVAILABLE:
 ${Object.keys(commandEffects).join(', ').toUpperCase()}
 
 TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
+
+READY TO BEGIN YOUR PRESIDENCY?
 ====================================================`;
             
             await addMessage(tutorialMsg, 'system');
@@ -598,12 +546,6 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
             state.soundEnabled = forceState !== undefined ? forceState : !state.soundEnabled;
             const btn = document.getElementById('soundToggle');
             if (btn) btn.textContent = `SOUND: ${state.soundEnabled ? 'ON' : 'OFF'}`;
-            if (state.soundEnabled && state.systemOn) {
-                initAudio();
-                playHum();
-            } else {
-                stopHum();
-            }
         }
 
         async function addMessage(text, type = 'system') {
@@ -611,37 +553,41 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
             
             const msgDiv = document.createElement('div');
             msgDiv.className = `msg ${type}`;
-            msgArea.appendChild(msgDiv);
+            msgArea.insertBefore(msgDiv, msgArea.firstChild);
             
+            // Clear old messages (keep last ~20)
+            while (msgArea.children.length > 25) {
+                if (msgArea.lastChild && !cmdInput.parentNode.contains(msgArea.lastChild)) {
+                    msgArea.removeChild(msgArea.lastChild);
+                } else break;
+            }
+            
+            // Type out message letter by letter at vintage speed with sound
             let i = 0;
-            return new Promise(resolve => {
-                const typeInterval = setInterval(() => {
-                    if (!state.systemOn) { clearInterval(typeInterval); resolve(); return; }
-                    
-                    msgDiv.textContent += text.charAt(i);
-                    msgArea.scrollTop = msgArea.scrollHeight;
-                    i++;
-                    
-                    // Simulate processing crunch for long messages
-                    if (state.soundEnabled && type === 'system' && i % 8 === 0) playHDDSeek();
-                    
-                    if (i >= text.length || !state.systemOn) {
-                        clearInterval(typeInterval);
-                        while (msgArea.children.length > 50) { msgArea.removeChild(msgArea.firstChild); }
-                        resolve();
-                    }
-                }, 1000 / state.typingSpeed);
-            });
+            const typeInterval = setInterval(() => {
+                if (!state.systemOn) { 
+                    clearInterval(typeInterval); 
+                    return; 
+                }
+                
+                msgDiv.textContent += text.charAt(i);
+                i++;
+                
+                // Play typewriter sound for each character (every few chars)
+                if (state.soundEnabled && i % 3 === 0) {
+                    playTypeSound();
+                }
+                
+                if (i >= text.length || !state.systemOn) {
+                    clearInterval(typeInterval);
+                }
+            }, 1000 / state.typingSpeed);
         }
 
         function buildDashboard() {
-            if (!state.systemOn) return;
             const gdpColor = state.gdp < 1.5 ? '#ff6b6b' : state.gdp > 3.0 ? '#4af626' : '#ffcc00';
             const unempColor = state.unemployment > 5.0 ? '#ff6b6b' : state.unemployment < 3.5 ? '#ffcc00' : '#4af626';
             const infColor = state.inflation > 3.0 ? '#ff6b6b' : state.inflation < 1.5 ? '#4af626' : '#ffcc00';
-            
-            const uagColor = state.uagIndex > 80 ? '#ff6b6b' : state.uagIndex < 50 ? '#00ffff' : '#ffcc00';
-            const tollColor = state.tollExtraction > 70 ? '#ff6b6b' : state.tollExtraction < 40 ? '#00ffff' : '#ffcc00';
             
             dashboard.innerHTML = `
                 <div class="dash-header">ECONOMIC DASHBOARD</div>
@@ -650,45 +596,83 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
                 <div class="dash-row"><span class="dash-label">INFLATION (PCE):</span><span class="dash-value" style="color:${infColor}">${state.inflation.toFixed(1)}%</span></div>
                 <div class="dash-row"><span class="dash-label">APPROVAL RATING:</span><span class="dash-value" style="color:#ffcc00">${Math.round(state.approval)}%</span></div>
                 <div class="dash-row"><span class="dash-label">FED CREDIBILITY:</span><span class="dash-value">${Math.round(state.fedCredibility)}%</span></div>
-                
-                <div class="dash-row atlas-section">
-                    <span class="atlas-label">UAG INDEX:</span>
-                    <span class="atlas-value" style="color:${uagColor}">${Math.round(state.uagIndex)}/100</span>
-                </div>
-                <div class="dash-row">
-                    <span class="atlas-label">TOLL EXTRACTION:</span>
-                    <span class="atlas-value" style="color:${tollColor}">${Math.round(state.tollExtraction)}%</span>
-                </div>
+                <div class="dash-row" style="margin-top:6px; border-top:1px solid #4af626; padding-top:5px;"><span class="dash-label">OIL PRICE:</span><span class="dash-value">$${state.oilPrice.toFixed(0)}/bbl</span></div>
+                <div style="margin-top:8px; font-size:10px; color:#4af626; opacity:0.7;">TURN: ${state.turn}/${state.maxTurns}</div>
             `;
         }
 
-        async function processCommand(cmd) {
-            if (!state.systemOn || !cmdInput.value.trim() || cmdInput.disabled) return;
+        const commandEffects = {
+            'cut_rates': { msg: 'INTEREST RATES CUT BY 0.25%', gdp: 0.35, approval: 2, inflation: 0.28 },
+            'increase_spending': { msg: 'INFRASTRUCTURE SPENDING +$50B', gdp: 0.4, unemployment: -0.12, inflation: 0.6 },
+            'more_spending': { msg: 'MORE INFRASTRUCTURE SPENDING', gdp: 0.5, unemployment: -0.15, inflation: 0.7 },
+            'massive_spending': { msg: 'MASSIVE PRE-ELECTION STIMULUS PACKAGE', gdp: 0.7, unemployment: -0.2, inflation: 0.9 },
+            'suppress_wages': { msg: 'WAGE GROWTH RESTRAINED', inflation: -0.35, unemployment: 0.4 },
+            'wage_control': { msg: 'EXECUTIVE WAGE CAPS ENFORCED', inflation: -0.4, unemployment: 0.5, approval: -2 },
+            'tariffs': { msg: 'NEW TARIFFS ON CHINA/EU IMPORTED GOODS', inflation: 0.5, gdp: -0.3, oilPrice: (state.turn > 4 ? 8 : 4) },
+            'escalate_trade_war': { msg: 'FULL TRADE WAR WITH MULTIPLE NATIONS', inflation: 0.7, gdp: -0.5, oilPrice: 12 },
+            'pressure_fed': { msg: 'FED PRESSURED TO CUT RATES IMMEDIATELY', approval: 3.2, fedCredibility: -9.5 },
+            'fed_intervention': { msg: 'DIRECT FEDERAL INTERVENTION INDEPENDENCE ENDANGERED', approval: 4, fedCredibility: -15 },
+            'cut_spending': { msg: 'GOVERNMENT SPENDING REDUCED TO COOL DEFICIT', inflation: -0.4, gdp: -0.3 },
+            'do_nothing': { msg: Math.random() > 0.5 ? `OIL PRICES JUMPED NATURALLY TO $${75 + (state.turn * 2)}/bbl` : 'ECONOMY STABILIZED WITHOUT INTERVENTION', transparency: 3 },
+            'price_controls': { msg: 'COMPREHENSIVE PRICE CONTROLS IMPOSED', inflation: -0.6, gdp: -0.8 },
+            'suppress_all_prices': { msg: 'ALL PRICES CONTROLLED BY EXECUTIVE ORDER', inflation: -0.7, gdp: -1.0 },
+            'blame_foreigners': { msg: 'DEFLECTION NARRATIVE ESTABLISHED - BLAME FOREIGNERS', approval: 2.5 },
+            'blame_predecessor': { msg: 'PREDECESSOR ADMINISTRATION BLAMED FOR ALL PROBLEMS', approval: 1.8 },
+            're_election_campaign': { msg: 'RE-ELECTION CAMPAIGN SPENDING INCREASED', gdp: 0.3, inflation: 0.5 },
+            'last_ditch_spending': { msg: 'LAST DITCH ECONOMIC STIMULUS PACKAGE', gdp: 0.4, inflation: 0.6 },
+            'policy_correction': { msg: 'INSTITUTIONAL CREDIBILITY RESTORED - VOTERS UNHAPPY NOW', fedCredibility: 12, approval: -8 },
+            'admit_errors': { msg: 'ERRORS ADMITTED PUBLICLY - SHORT TERM PAIN FOR LONG TERM GAIN', fedCredibility: 10, approval: -6 },
+            'federal_independence': { msg: 'FEDERAL INDEPENDENCE DECLARED - INSTITUTIONAL REFORM', fedCredibility: 10, approval: -3 },
+            'trust_voters': { msg: 'VOTERS TRUSTED TO MAKE ECONOMIC DECISIONS', transparency: 5 }
+        };
+
+        const miltonResponses = {
+            turn2: `\nTURN 2 - Q2 2026\nYOUR DECISION HAS BEEN IMPLEMENTED.\n\nECONOMIC UPDATE:\nINFLATION: ${state.inflation.toFixed(1)}% | APPROVAL: ${Math.round(state.approval)}%\n\nAVAILABLE ACTIONS:\n${Object.keys(commandEffects).join(', ').toUpperCase()}`,
             
-            cmdInput.disabled = true; 
+            turn3: `\nTURN 3 - Q3 2026\nSITUATION EVOLVED.\n\nGDP: ${state.gdp.toFixed(1)}% | UNEMPLOYMENT: ${state.unemployment.toFixed(1)}%\nINFLATION: ${state.inflation.toFixed(1)}%\nOIL PRICE: $${state.oilPrice.toFixed(0)}/bbl`,
+            
+            turn4: `\nTURN 4 - Q4 2026\nECONOMIC CONDITIONS:\nGDP: ${state.gdp.toFixed(1)}% | UNEMPLOYMENT: ${state.unemployment.toFixed(1)}%\nINFLATION: ${state.inflation.toFixed(1)}% | OIL: $${state.oilPrice.toFixed(0)}/bbl\n\nCRITICAL DECISION POINT - CHOOSE WISELY.`,
+            
+            turn5: `\nTURN 5 - Q1 2027 (ELECTION YEAR)\nTHE PRESIDENTIAL ELECTORAL CALENDAR HAS COMMENCED.\n\nAPPROVAL RATING: ${Math.round(state.approval)}% | FED CREDIBILITY: ${Math.round(state.fedCredibility)}%\n\nIF APPROVAL BELOW 45% + INFLATION ABOVE 3% = ELECTION RISK`,
+            
+            turn6: `\nTURN 6 - Q2 2027 (ELECTION SEASON)\nAPPROVAL TRENDS:\n- INFLATION ABOVE 3% = VOTER PAIN\n- UNEMPLOYMENT ABOVE 5% = RECESSION FEAR\n\nYOUR MOVE, MR. PRESIDENT.`
+        };
+
+        async function processCommand(cmd) {
+            if (!state.systemOn || !cmdInput.value.trim()) return;
+            
             cmd = cmd.toLowerCase().trim();
             
+            // Add user command to log with keyboard sounds for each char typed
             const userMsg = document.createElement('div');
             userMsg.className = 'msg president';
-            msgArea.appendChild(userMsg);
-            msgArea.scrollTop = msgArea.scrollHeight;
             
             let i = 0;
-            await new Promise(resolve => {
-                const typeInterval = setInterval(() => {
-                    if (!state.systemOn) { clearInterval(typeInterval); resolve(); return; }
+            const typeInterval = setInterval(() => {
+                if (!state.systemOn) { 
+                    clearInterval(typeInterval); 
+                    return; 
+                }
+                
+                userMsg.textContent = `POTUS@WHITEHOUSE:~$ ${cmd.substring(0, i + 1)}`;
+                i++;
+                
+                if (state.soundEnabled && i % 3 === 0) {
+                    playKeyClick();
+                }
+                
+                if (i >= cmd.length || !state.systemOn) {
+                    clearInterval(typeInterval);
+                    msgArea.insertBefore(userMsg, msgArea.firstChild);
                     
-                    userMsg.textContent = `POTUS@WHITEHOUSE:~$ ${cmd.substring(0, i + 1)}`;
-                    i++;
-                    
-                    if (state.soundEnabled) playKeyClick();
-                    
-                    if (i >= cmd.length) {
-                        clearInterval(typeInterval);
-                        resolve();
+                    // Clear old messages
+                    while (msgArea.children.length > 30) {
+                        if (msgArea.lastChild && !cmdInput.parentNode.contains(msgArea.lastChild)) {
+                            msgArea.removeChild(msgArea.lastChild);
+                        } else break;
                     }
-                }, 1000 / (state.typingSpeed * 1.5)); // fast typing echo
-            });
+                }
+            }, 1000 / state.typingSpeed);
             
             cmdInput.value = '';
             
@@ -696,68 +680,87 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
             
             if (!effect) {
                 playErrorSound();
-                await addMessage(`COMMAND NOT RECOGNIZED. TYPE "HELP" FOR LIST.`, 'warning');
-                cmdInput.disabled = false;
-                focusInput();
+                await addMessage(`COMMAND "${cmd}" NOT RECOGNIZED. TYPE "HELP" FOR COMMAND LIST.`, 'warning');
+                buildDashboard();
                 return;
             }
             
-            // Crunching sound for processing valid command
-            if (state.soundEnabled) {
-                for(let k=0; k<3; k++) setTimeout(playHDDSeek, k*150);
-            }
-            await new Promise(r => setTimeout(r, 600)); // processing delay
-            
+            // Apply effects with bounds checking
             state.gdp += (effect.gdp || 0);
             state.unemployment += (effect.unemployment || 0);
             state.inflation += (effect.inflation || 0);
             state.approval += (effect.approval || 0);
             state.fedCredibility += (effect.fedCredibility || 0);
             state.oilPrice += (effect.oilPrice || 0);
-            state.uagIndex += (effect.uagIndex || 0);
-            state.tollExtraction += (effect.tollExtraction || 0);
             
-            // Clamps
-            state.gdp = Math.max(-5, state.gdp);
-            state.unemployment = Math.min(20, Math.max(1, state.unemployment));
-            state.inflation = Math.min(15, Math.max(-2, state.inflation));
-            state.approval = Math.min(100, Math.max(0, state.approval));
-            state.fedCredibility = Math.min(100, Math.max(0, state.fedCredibility));
-            state.uagIndex = Math.min(100, Math.max(0, state.uagIndex));
-            state.tollExtraction = Math.min(95, Math.max(5, state.tollExtraction));
+            // Clamp values to realistic ranges
+            if (state.gdp < -5) state.gdp = -5;
+            if (state.unemployment > 20) state.unemployment = 20;
+            if (state.inflation > 15) state.inflation = 15;
+            if (state.approval < 0) state.approval = 0;
+            if (state.fedCredibility < 0) state.fedCredibility = 0;
+            if (state.oilPrice < 30) state.oilPrice = 30;
             
-            const msgType = effect.type === 'atlas' ? 'atlas' : 'system';
-            if (effect.msg) await addMessage(effect.msg, msgType);
+            if (effect.msg) await addMessage(effect.msg, 'system');
             
+            // Second-order effects
             let warnings = [];
             
             if (state.inflation > 3.0 && state.turn > 2) {
                 const pain = Math.max(1, (state.inflation - 3.0) * 2);
                 state.approval -= pain;
-                warnings.push(`⚠️ INFLATION > 3%. VOTER PURCHASING POWER DEGRADED (-${pain.toFixed(1)}% APP).`);
+                warnings.push(`⚠️ INFLATION ABOVE 3% CAUSES VOTER PAIN (-${pain.toFixed(1)}%)`);
             }
             
-            if (state.uagIndex > 90) {
-                warnings.push(`🚨 CRITICAL: ALGORITHMIC CAPTURE IMMINENT. SOVEREIGNTY COMPROMISED.`);
-                state.approval -= 3; // People sense the loss of agency
+            if (state.unemployment > 5.0 && state.unemployment <= 6) {
+                state.approval -= 2;
+                warnings.push(`⚠️ UNEMPLOYMENT ABOVE 5% = RECESSION SIGNAL (-2% approval)`);
+            } else if (state.unemployment > 6) {
+                state.approval -= 4;
+                warnings.push(`⚠️ SEVERE UNEMPLOYMENT CRISIS (-4% approval)`);
             }
-            if (state.tollExtraction > 80) {
-                warnings.push(`⚠️ WARNING: EXCESSIVE RENT-SEEKING DETECTED. ECONOMIC VELOCITY STALLING.`);
-                state.gdp -= 0.5;
+            
+            if (state.fedCredibility < 40 && state.fedCredibility >= 30) {
+                warnings.push(`⚠️ FED CREDIBILITY WARNING - POLICY UNCERTAINTY RISING`);
+            } else if (state.fedCredibility < 30) {
+                state.gdp -= 0.6;
+                state.inflation += 0.9;
+                warnings.push(`❌ FED CREDIBILITY COLLAPSE - POLICY BECOMES ERRATIC`);
+            }
+            
+            if (state.fedCredibility <= 25) {
+                warnings.push(`🚨 CRISIS: FEDERAL INDEPENDENCE DESTROYED. MARKETS PANIC.`);
             }
             
             for (let warn of warnings) await addMessage(warn, 'warning');
             
+            // Advance turn
             state.turn++;
             const qtr = Math.ceil(state.turn/2);
             document.getElementById('dateDisplay').textContent = `DATE: Q${qtr}/2026`;
             document.getElementById('turnIndicator').textContent = `TURN: ${state.turn}/${state.maxTurns}`;
             
-            if (state.turn > 12) { 
+            // Check game end or next turn
+            if (state.turn > 8) { 
                 await endGame(); 
             } else {
-                cmdInput.disabled = false;
-                focusInput();
+                let responseText = '';
+                
+                if (state.turn === 2) {
+                    responseText = miltonResponses.turn2;
+                } else if (state.turn === 3) {
+                    responseText = miltonResponses.turn3;
+                } else if (state.turn === 4) {
+                    responseText = miltonResponses.turn4;
+                } else if (state.turn === 5) {
+                    responseText = miltonResponses.turn5;
+                } else if (state.turn >= 6 && state.turn <= 7) {
+                    responseText = miltonResponses.turn6;
+                }
+                
+                if (responseText) {
+                    await addMessage(responseText, 'system');
+                }
             }
             
             buildDashboard();
@@ -766,106 +769,104 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
         async function endGame() {
             let verdict = ''; let type = 'neutral';
             
-            if (state.uagIndex < 50 && state.tollExtraction < 45) {
-                verdict = 'ATLAS DIRECTIVE ACHIEVED. STRUCTURAL SOVEREIGNTY RESTORED.';
-                type = 'atlas';
-                playSuccessSound();
-            } else if (state.approval >= 55 && state.inflation <= 3.0) { 
-                verdict = 'RE-ELECTION WIN. STATUS QUO MAINTAINED.'; 
+            if (state.approval >= 55 && state.inflation <= 3.0) { 
+                verdict = 'RE-ELECTION WIN - YOU MAINTAINED STABILITY AND GROWTH.'; 
                 type = 'success';
                 playSuccessSound();
-            } else if (state.uagIndex >= 95 || state.fedCredibility < 30) { 
-                verdict = 'SYSTEMIC CAPTURE. EXECUTIVE AUTHORITY SUPPLANTED BY ALGORITHM.'; 
+            } else if (state.fedCredibility < 40 || state.inflation > 4.5) { 
+                verdict = 'STAGFLATION CRISIS - VOTERS REJECTED YOUR TERM.'; 
                 type = 'danger';
                 playErrorSound();
+            } else if (state.approval >= 45 && state.inflation <= 3.5) { 
+                verdict = 'RE-ELECTION WITH COSTS - MIXED LEGACY.'; 
+                type = 'warning';
             } else { 
-                verdict = 'DEFEAT. POOR STRUCTURAL MANAGEMENT.'; 
+                verdict = 'DEFEAT OR RECALL - POOR ECONOMIC MANAGEMENT.'; 
                 type = 'danger';
                 playErrorSound();
             }
             
-            const finalMsg = `\n=====================================\n${verdict.toUpperCase()}\n=====================================\n
-FINAL METRICS:
-GDP: ${state.gdp.toFixed(1)}% | UNEMP: ${state.unemployment.toFixed(1)}% | INF: ${state.inflation.toFixed(1)}%
-UAG INDEX: ${Math.round(state.uagIndex)}/100
-TOLL EXTRACTION: ${Math.round(state.tollExtraction)}%
-
-TERMINAL DISCONNECTED.`;
+            const finalMsg = `\n=====================================\n${verdict.toUpperCase()}\n=====================================\n\nFINAL ECONOMIC CONDITIONS:\nGDP GROWTH: ${state.gdp.toFixed(1)}%\nUNEMPLOYMENT: ${state.unemployment.toFixed(1)}%\nINFLATION (PCE): ${state.inflation.toFixed(1)}%\nFED CREDIBILITY: ${Math.round(state.fedCredibility)}%\nFINAL APPROVAL RATING: ${Math.round(state.approval)}%\n\n${type === 'success' ? '\n✓ INSTITUTIONS WORKED WHEN TRUSTED.\n✓ TRADE-OFFS WERE ACKNOWLEDGED.' : ''}
+            ${type === 'danger' ? `\n❌ INCENTIVES MISALIGNED THROUGHOUT TERM.\n❌ SECOND-ORDER EFFECTS IGNORED OR DISMISSED.\n❌ ACCOUNTABILITY MECHANISMS FAILED.\n❌ ORDINARY CITIZENS PAID THE PRICE.` : ''}\n\nTHANK YOU FOR USING SYSTEM MILTON v4.0.\nREMEMBER:\nINSTITUTIONS SHAPE INCENTIVES,\nWHICH SHAPE BEHAVIOR,\nWHICH SHAPES OUTCOMES.\n\nPRESIDENTIAL TERMINATION COMPLETE.\nSESSION ENDED.`;
             
-            await addMessage(finalMsg, type === 'success' || type === 'atlas' ? 'success' : 'danger');
+            await addMessage(finalMsg, type === 'success' ? 'success' : 'danger');
             cmdInput.disabled = true;
             statusLine.textContent = 'SYSTEM SHUTDOWN - PRESS POWER BUTTON TO RESTART';
-            stopHum();
         }
 
         async function resetGame() {
-            state.turn = 1; state.gdp = 4.2; state.unemployment = 3.8; state.inflation = 2.1; 
-            state.approval = 58; state.fedCredibility = 72; state.oilPrice = 75;
-            state.uagIndex = 88; state.tollExtraction = 64;
+            state.turn = 1; 
+            state.gdp = 4.2; 
+            state.unemployment = 3.8; 
+            state.inflation = 2.1; 
+            state.approval = 58; 
+            state.fedCredibility = 72; 
+            state.oilPrice = 75;
             
             msgArea.innerHTML = '';
             document.getElementById('dateDisplay').textContent = 'DATE: Q1/2026';
-            document.getElementById('turnIndicator').textContent = 'TURN: 1/12';
+            document.getElementById('turnIndicator').textContent = 'TURN: 1/8';
             statusLine.textContent = 'SYSTEM READY FOR NEW SESSION - PRESS POWER TO START';
             
             playSuccessSound();
-            if(state.soundEnabled) playHum();
         }
 
         async function showHelp() {
             let commandText = '';
             for (const [cmd, data] of Object.entries(commandEffects)) {
-                commandText += `\n  ${cmd.toUpperCase()}`;
+                commandText += `\n  ${cmd.toUpperCase()} - ${data.msg}`;
             }
-            const helpMsg = `AVAILABLE DIRECTIVES:${commandText}\n\nTYPE DIRECTIVE EXACTLY AS SHOWN.\nUSE "RESET" TO RESTART SIMULATION.`;
+            
+            const helpMsg = `COMMAND REFERENCE:${commandText}\n\nTYPE COMMAND AND PRESS ENTER TO EXECUTE.\nUSE "RESET" TO START OVER.`;
             await addMessage(helpMsg, 'system');
         }
 
+        // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
             cmdInput.addEventListener('keydown', async (e) => {
-                if (!state.systemOn || cmdInput.disabled) return;
+                if (!state.systemOn) return;
                 
                 if (e.key === 'Enter') {
                     e.preventDefault();
+                    
                     const val = cmdInput.value.trim().toLowerCase();
                     
                     if (val === 'help' || val === '?') {
-                        if (state.soundEnabled) playKeyClick();
-                        cmdInput.disabled = true;
-                        cmdInput.value = '';
+                        playKeyClick();
                         await showHelp();
-                        cmdInput.disabled = false;
-                        focusInput();
+                        buildDashboard();
                         return;
                     }
                     
                     if (val === 'reset') {
-                        cmdInput.disabled = true;
-                        cmdInput.value = '';
                         await addMessage('RESETTING SYSTEM...', 'warning');
-                        setTimeout(() => { resetGame(); cmdInput.disabled = false; focusInput(); }, 1000);
+                        setTimeout(() => resetGame(), 1000);
                         return;
                     }
                     
+                    if (!state.systemOn) return;
                     await processCommand(val);
+                }
+                
+                // Play key click sound as user types
+                if (e.key.length === 1 && state.soundEnabled) {
+                    playKeyClick();
                 }
             });
             
             cmdInput.addEventListener('focus', () => {
-                const existingCursor = document.getElementById('cursorIndicator');
-                if (!existingCursor) {
-                    const cursor = document.createElement('div');
-                    cursor.className = 'typing-cursor';
-                    cursor.id = 'cursorIndicator';
-                    document.querySelector('.prompt').appendChild(cursor);
-                }
-            });
-            
-            cmdInput.addEventListener('blur', () => {
-                const cursor = document.getElementById('cursorIndicator');
-                if (cursor) cursor.remove();
+                if (state.systemOn && state.soundEnabled) initAudio();
             });
         });
+
+        // Dashboard update on turn change
+        function setupTurnUpdates() {
+            setInterval(() => {
+                if (state.systemOn && state.turn <= 8) {
+                    buildDashboard();
+                }
+            }, 100);
+        }
     </script>
 </body>
 </html>
