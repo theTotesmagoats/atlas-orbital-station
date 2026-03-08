@@ -8,8 +8,8 @@
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         
         :root {
-            --phosphor: #ffb000; 
-            --milton: #e8e8e8;   
+            --phosphor: #ffb000; /* Deep Amber */
+            --milton: #e8e8e8;   /* Phosphor White for clarity */
             --bg: #0a0600;
             --dim: rgba(255, 176, 0, 0.3);
             --danger: #ff3300;
@@ -25,26 +25,29 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            padding: 2vw;
+            padding: 2vh 2vw;
             overflow: hidden;
-            font-size: 24px;
+            font-size: 22px; /* Slightly scaled down for universal fit */
             color: var(--phosphor);
             letter-spacing: 1px;
         }
 
+        /* HARDWARE BEZEL */
         .hardware-bezel {
             width: 100%;
             max-width: 1600px;
             height: 100%;
             background: #111;
             border-radius: 12px;
-            padding: 20px;
+            /* 85px bottom padding creates the "chin" for the hardware buttons */
+            padding: 20px 20px 85px 20px; 
             box-shadow: inset 0 0 20px #000, 0 0 50px #000;
             display: flex;
             flex-direction: column;
             position: relative;
         }
 
+        /* CRT SCREEN */
         .crt-screen {
             background: var(--bg);
             flex-grow: 1;
@@ -52,16 +55,17 @@
             position: relative;
             overflow: hidden;
             display: flex;
-            box-shadow: inset 0 0 25px rgba(0,0,0,0.6); /* Lightened inset shadow */
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
             opacity: 0; 
             transition: opacity 0.1s, background-color 0.5s;
         }
         .crt-screen.on { opacity: 1; }
         .crt-screen.war-mode { background: #1a0500; } 
 
+        /* CRT EFFECTS */
         .scanlines {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15)); /* Lightened scanlines */
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
             background-size: 100% 4px;
             pointer-events: none;
             z-index: 50;
@@ -69,27 +73,30 @@
         
         .glow {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle, rgba(255,176,0,0.02) 0%, rgba(0,0,0,0.25) 100%); /* Lightened vignette significantly */
+            background: radial-gradient(circle, rgba(255,176,0,0.02) 0%, rgba(0,0,0,0.3) 100%);
             pointer-events: none;
             z-index: 49;
         }
 
+        /* LAYOUT GRID */
         .system-grid {
             display: grid;
-            grid-template-columns: 1fr 420px;
+            grid-template-columns: 1fr 400px;
             width: 100%;
             height: 100%;
             position: relative;
             z-index: 10;
         }
 
+        /* TERMINAL AREA (LEFT) */
         .terminal-area {
             display: flex;
             flex-direction: column;
-            padding: 30px;
+            padding: 25px 30px 15px 30px;
             height: 100%;
             border-right: 2px solid var(--dim);
             cursor: text; 
+            overflow: hidden;
         }
 
         .log-output {
@@ -98,12 +105,12 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            padding-bottom: 20px;
+            padding-bottom: 15px;
         }
         .log-output::-webkit-scrollbar { display: none; }
         .log-output { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .block { margin-bottom: 18px; line-height: 1.3; white-space: pre-wrap; text-shadow: 0 0 2px var(--phosphor); }
+        .block { margin-bottom: 15px; line-height: 1.3; white-space: pre-wrap; text-shadow: 0 0 2px var(--phosphor); }
         .block.system { opacity: 0.8; }
         .block.chief { font-weight: bold; color: var(--phosphor); border-left: 3px solid var(--phosphor); padding-left: 15px; }
         .block.milton { color: var(--milton); font-style: italic; border-left: 3px solid var(--milton); padding-left: 15px; text-shadow: 0 0 2px var(--milton); }
@@ -111,108 +118,118 @@
         .block.general { color: var(--war); text-shadow: 0 0 3px var(--war); border-left: 3px solid var(--war); padding-left: 15px; font-weight: bold; }
         .block.user-echo { font-weight: bold; opacity: 0.9; }
 
+        /* CUSTOM INPUT HANDLING */
         .input-line {
             display: flex;
             align-items: center;
             margin-top: auto;
             flex-shrink: 0;
             display: none; 
-            font-size: 26px; /* Increased typing size */
+            padding-bottom: 5px; /* Protects descending letters like 'g' or 'y' */
         }
 
-        .prompt { margin-right: 10px; text-shadow: 0 0 1px var(--phosphor); font-weight: bold; } /* Sharpened prompt */
-        #visualInput { white-space: pre; text-transform: lowercase; text-shadow: 0 0 1px var(--phosphor); } /* Sharpened input */
+        .prompt { margin-right: 10px; text-shadow: 0 0 2px var(--phosphor); font-weight: bold; }
+        #visualInput { white-space: pre; text-transform: lowercase; text-shadow: 0 0 2px var(--phosphor); }
 
         .cursor {
-            display: inline-block; width: 14px; height: 26px;
+            display: inline-block; width: 14px; height: 22px;
             background: var(--phosphor); animation: blink 1s step-end infinite;
-            margin-left: 2px; vertical-align: text-bottom;
+            margin-left: 2px; vertical-align: text-bottom; box-shadow: 0 0 3px var(--phosphor);
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        #cmd { position: absolute; opacity: 0; left: -9999px; pointer-events: none; }
+        #cmd { position: absolute; opacity: 0; left: -9999px; top: -9999px; pointer-events: none; }
 
+        /* DASHBOARD AREA (RIGHT) */
         .dashboard-area {
-            padding: 20px 30px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 15px; /* Tighter gap prevents vertical overflow */
             background: rgba(10, 6, 0, 0.4);
             cursor: default;
+            height: 100%;
+            overflow: hidden;
         }
 
         .panel {
             border: 2px solid var(--phosphor);
-            padding: 15px 20px;
-            box-shadow: inset 0 0 15px var(--dim);
+            padding: 12px 15px;
+            box-shadow: inset 0 0 10px var(--dim);
             transition: border-color 0.3s;
+            flex-shrink: 0;
         }
         .panel.war-mode { border-color: var(--war); box-shadow: inset 0 0 20px rgba(255, 68, 68, 0.2); }
 
         .panel-title {
             text-align: center; border-bottom: 2px solid var(--dim);
-            padding-bottom: 8px; margin-bottom: 15px; letter-spacing: 2px; font-weight: bold;
+            padding-bottom: 5px; margin-bottom: 10px; letter-spacing: 2px; font-weight: bold;
         }
 
-        .metric-row { display: flex; justify-content: space-between; margin-bottom: 10px; cursor: help; }
+        .metric-row { display: flex; justify-content: space-between; margin-bottom: 8px; cursor: help; }
         .metric-row:hover { background: var(--dim); }
         .metric-label { opacity: 0.8; text-shadow: 0 0 1px var(--phosphor); }
-        .metric-value { font-weight: bold; text-shadow: 0 0 1px var(--phosphor); }
-        .metric-value.warning { color: var(--danger); text-shadow: 0 0 2px var(--danger); }
+        .metric-value { font-weight: bold; text-shadow: 0 0 2px var(--phosphor); }
+        .metric-value.warning { color: var(--danger); text-shadow: 0 0 3px var(--danger); }
         .metric-value.good { color: #4af626; text-shadow: 0 0 2px #4af626; }
 
         .dict-box {
-            flex-grow: 1; border: 1px solid var(--dim); padding: 20px;
-            font-size: 20px; line-height: 1.4; background: rgba(255, 176, 0, 0.05);
+            flex-grow: 1; border: 1px solid var(--dim); padding: 15px;
+            font-size: 18px; line-height: 1.3; background: rgba(255, 176, 0, 0.05);
             display: flex; flex-direction: column;
+            overflow-y: auto; /* Allows scrolling if text is too long */
         }
+        .dict-box::-webkit-scrollbar { display: none; }
         
         .context-title {
-            font-weight: bold; font-size: 22px; margin-bottom: 10px;
-            border-bottom: 1px solid var(--phosphor); padding-bottom: 8px;
+            font-weight: bold; font-size: 20px; margin-bottom: 8px;
+            border-bottom: 1px solid var(--phosphor); padding-bottom: 5px;
             text-shadow: 0 0 1px var(--phosphor);
+            flex-shrink: 0;
         }
-        .context-def { margin-bottom: 12px; line-height: 1.5; text-shadow: 0 0 1px var(--phosphor); }
-        .context-hist { font-style: italic; opacity: 0.9; line-height: 1.5; border-left: 2px solid var(--phosphor); padding-left: 10px; text-shadow: 0 0 1px var(--phosphor); color: var(--milton); }
+        .context-def { margin-bottom: 10px; text-shadow: 0 0 1px var(--phosphor); }
+        .context-hist { font-style: italic; opacity: 0.9; border-left: 2px solid var(--phosphor); padding-left: 10px; text-shadow: 0 0 1px var(--phosphor); color: var(--milton); }
 
         .cmd-list {
-            margin-top: auto; font-size: 20px; /* Increased font size for commands */
-            border-top: 2px dashed var(--dim); padding-top: 15px; text-shadow: none; /* Removed heavy bloom */
+            flex-shrink: 0;
+            font-size: 18px; opacity: 0.9;
+            border-top: 2px dashed var(--dim); padding-top: 10px; text-shadow: 0 0 1px var(--phosphor);
         }
-        .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .cmd-item { font-size: 19px; opacity: 0.9; }
-        .cmd-item.highlight { border: 1px solid var(--milton); color: var(--milton); padding: 4px 5px; border-radius: 3px; text-shadow: none;}
-        .cmd-item.war-highlight { border: 1px solid var(--war); color: var(--war); text-shadow: none;}
+        .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px; }
+        .cmd-item { font-size: 18px; }
+        .cmd-item.highlight { border: 1px solid var(--milton); color: var(--milton); padding: 2px 4px; border-radius: 3px; text-shadow: none; text-align: center; margin-bottom: 8px;}
+        .cmd-item.war-highlight { border: 1px solid var(--war); color: var(--war); text-shadow: none; text-align: center;}
 
-        .hardware-controls { position: absolute; bottom: 25px; right: 35px; display: flex; gap: 20px; z-index: 100; }
+        /* HARDWARE CONTROLS CLUSTER - Moved to the bottom chin */
+        .hardware-controls { 
+            position: absolute; 
+            bottom: 20px; 
+            right: 30px; 
+            display: flex; 
+            gap: 25px; 
+            z-index: 100; 
+        }
+        
         .hw-btn {
-            width: 48px; height: 48px; background: #2a2a2a; border: 2px solid #000; border-radius: 50%;
-            cursor: pointer; box-shadow: 0 5px 0 #000, inset 0 2px 5px rgba(255,255,255,0.1);
+            width: 45px; height: 45px; background: #2a2a2a; border: 2px solid #000; border-radius: 50%;
+            cursor: pointer; box-shadow: 0 4px 0 #000, inset 0 2px 5px rgba(255,255,255,0.1);
             display: flex; justify-content: center; align-items: center; color: #111; 
             font-family: sans-serif; text-shadow: 1px 1px 0 rgba(255,255,255,0.15); transition: all 0.1s; position: relative;
         }
         .hw-btn:hover { background: #333; }
-        .hw-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #000, inset 0 2px 5px rgba(255,255,255,0.1); }
-        .hw-icon { font-size: 22px; } .hw-icon.power { font-size: 26px; }
+        .hw-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #000, inset 0 2px 5px rgba(255,255,255,0.1); }
+        .hw-icon { font-size: 20px; } .hw-icon.power { font-size: 24px; }
+        
         .hw-led {
-            width: 10px; height: 10px; border-radius: 50%; position: absolute; top: -18px; left: 17px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+            width: 8px; height: 8px; border-radius: 50%; position: absolute; top: -16px; left: 18px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
         }
-        .hw-led.amber { background: #331a00; } .hw-led.amber.on { background: #ffaa00; box-shadow: 0 0 12px #ffaa00, inset 0 1px 2px rgba(255,255,255,0.5); }
-        .hw-led.green { background: #003300; } .hw-led.green.on { background: #4af626; box-shadow: 0 0 12px #4af626, inset 0 1px 2px rgba(255,255,255,0.5); }
+        .hw-led.amber { background: #331a00; } .hw-led.amber.on { background: #ffaa00; box-shadow: 0 0 10px #ffaa00, inset 0 1px 2px rgba(255,255,255,0.5); }
+        .hw-led.green { background: #003300; } .hw-led.green.on { background: #4af626; box-shadow: 0 0 10px #4af626, inset 0 1px 2px rgba(255,255,255,0.5); }
     </style>
 </head>
 <body>
 
     <div class="hardware-bezel">
-        <div class="hardware-controls">
-            <div class="hw-btn" onclick="toggleSound()" title="TOGGLE SOUND">
-                <div class="hw-led green on" id="soundLed"></div><div class="hw-icon">🔊</div>
-            </div>
-            <div class="hw-btn" onclick="togglePower()" title="POWER">
-                <div class="hw-led amber" id="powerLed"></div><div class="hw-icon power">⏻</div>
-            </div>
-        </div>
-        
         <div class="crt-screen" id="screen">
             <div class="scanlines"></div>
             <div class="glow"></div>
@@ -241,6 +258,15 @@
                     <div class="cmd-list" id="cmdListArea"></div>
                 </div>
 
+            </div>
+        </div>
+
+        <div class="hardware-controls">
+            <div class="hw-btn" onclick="toggleSound()" title="TOGGLE SOUND">
+                <div class="hw-led green on" id="soundLed"></div><div class="hw-icon">🔊</div>
+            </div>
+            <div class="hw-btn" onclick="togglePower()" title="POWER">
+                <div class="hw-led amber" id="powerLed"></div><div class="hw-icon power">⏻</div>
             </div>
         </div>
     </div>
@@ -300,7 +326,7 @@
 
         const warCommands = {
             'as': { name: 'AIRSTRIKE', effect: () => { state.war.enemyStrength-=20; state.war.expenditure+=15; state.war.tension+=10; print("GENERAL: Bombs away. Target facilities destroyed.", 'general'); } },
-            'bd': { name: 'NAVAL BLOCKADE', effect: () => { state.war.enemyStrength-=10; state.war.tension-=5; state.war.expenditure+=5; state.inflation+=1.0; print("GENERAL: Fleet in position. Nothing gets through. It's squeezing the global supply chain, though.", 'general'); } },
+            'bd': { name: 'NAVAL BLOCKADE', effect: () => { state.war.enemyStrength-=10; state.war.tension-=5; state.war.expenditure+=5; state.inflation+=1.0; print("GENERAL: Fleet in position. Nothing gets through. It's squeezing the global supply chain.", 'general'); } },
             'go': { name: 'GROUND OPS', effect: () => { state.war.enemyStrength-=35; state.war.casualties+=150; state.war.expenditure+=25; state.war.tension+=20; state.approval-=5; print("GENERAL: Boots on the ground. We are taking territory, but taking fire.", 'general'); } },
             'so': { name: 'SPECIAL OPS', effect: () => { 
                 if(Math.random() > 0.4) { state.war.enemyStrength-=15; state.war.expenditure+=2; print("GENERAL: Surgical strike successful. High Value Target eliminated.", 'general'); } 
@@ -403,22 +429,22 @@
             let tLeft = state.maxTurns - state.turn + 1;
             DOM.telemetry.innerHTML = `
                 <div class="panel-title">MACRO TELEMETRY</div>
-                <div class="metric-row" data-term="election"><span class="metric-label">ELECTION IN:</span><span class="metric-value ${tLeft<=3?'warning':''}">${tLeft} TRN</span></div>
-                <div style="height:15px; border-bottom: 1px dashed var(--dim); margin-bottom: 15px;"></div>
-                <div class="metric-row" data-term="gdp"><span class="metric-label">GDP GROWTH:</span><span class="metric-value ${state.gdp<1.5?'warning':(state.gdp>3?'good':'')}">${state.gdp.toFixed(1)}%</span></div>
-                <div class="metric-row" data-term="unemployment"><span class="metric-label">UNEMPLOYMENT:</span><span class="metric-value ${state.unemployment>6?'warning':(state.unemployment<4?'good':'')}">${state.unemployment.toFixed(1)}%</span></div>
-                <div class="metric-row" data-term="inflation"><span class="metric-label">INFLATION(PCE):</span><span class="metric-value ${state.inflation>3?'warning':(state.inflation<2?'good':'')}">${state.inflation.toFixed(1)}%</span></div>
-                <div class="metric-row" data-term="sp500"><span class="metric-label">S&P 500:</span><span class="metric-value ${state.sp500<4800?'warning':'good'}">${Math.round(state.sp500).toLocaleString()}</span></div>
-                <div style="height:15px;"></div>
-                <div class="metric-row" data-term="approval"><span class="metric-label">APP RATING:</span><span class="metric-value">${Math.round(state.approval)}%</span></div>
-                <div class="metric-row" data-term="congress"><span class="metric-label">CONGRESS APP:</span><span class="metric-value ${state.congress<=25?'warning':''}">${Math.round(state.congress)}%</span></div>
-                <div class="metric-row" data-term="fed"><span class="metric-label">FED CRED:</span><span class="metric-value">${Math.round(state.fedCredibility)}%</span></div>
-                <div class="metric-row" data-term="tariffs"><span class="metric-label">AVG TARIFF:</span><span class="metric-value ${state.tariffRate>10?'warning':''}">${state.tariffRate.toFixed(1)}%</span></div>
+                <div class="metric-row hover-term" data-term="election"><span class="metric-label">ELECTION IN:</span><span class="metric-value ${tLeft<=3?'warning':''}">${tLeft} TRN</span></div>
+                <div style="height:10px; border-bottom: 1px dashed var(--dim); margin-bottom: 10px;"></div>
+                <div class="metric-row hover-term" data-term="gdp"><span class="metric-label">GDP GROWTH:</span><span class="metric-value ${state.gdp<1.5?'warning':(state.gdp>3?'good':'')}">${state.gdp.toFixed(1)}%</span></div>
+                <div class="metric-row hover-term" data-term="unemployment"><span class="metric-label">UNEMPLOYMENT:</span><span class="metric-value ${state.unemployment>6?'warning':(state.unemployment<4?'good':'')}">${state.unemployment.toFixed(1)}%</span></div>
+                <div class="metric-row hover-term" data-term="inflation"><span class="metric-label">INFLATION(PCE):</span><span class="metric-value ${state.inflation>3?'warning':(state.inflation<2?'good':'')}">${state.inflation.toFixed(1)}%</span></div>
+                <div class="metric-row hover-term" data-term="sp500"><span class="metric-label">S&P 500:</span><span class="metric-value ${state.sp500<4800?'warning':'good'}">${Math.round(state.sp500).toLocaleString()}</span></div>
+                <div style="height:10px;"></div>
+                <div class="metric-row hover-term" data-term="approval"><span class="metric-label">APP RATING:</span><span class="metric-value">${Math.round(state.approval)}%</span></div>
+                <div class="metric-row hover-term" data-term="congress"><span class="metric-label">CONGRESS APP:</span><span class="metric-value ${state.congress<=25?'warning':''}">${Math.round(state.congress)}%</span></div>
+                <div class="metric-row hover-term" data-term="fed"><span class="metric-label">FED CRED:</span><span class="metric-value">${Math.round(state.fedCredibility)}%</span></div>
+                <div class="metric-row hover-term" data-term="tariffs"><span class="metric-label">AVG TARIFF:</span><span class="metric-value ${state.tariffRate>10?'warning':''}">${state.tariffRate.toFixed(1)}%</span></div>
             `;
             
             DOM.cmdList.innerHTML = `
-                <div style="text-align:center; font-weight:bold; border-bottom: 1px solid var(--dim); padding-bottom:5px; margin-bottom:10px;">DIRECTIVES</div>
-                <div class="cmd-item highlight" style="text-align:center; margin-bottom: 10px;">[am] ASK MILTON (Advisor)</div>
+                <div style="text-align:center; font-weight:bold; padding-bottom:5px;">DIRECTIVES</div>
+                <div class="cmd-item highlight">[am] ASK MILTON (Advisor)</div>
                 <div class="cmd-grid">
                     <div class="cmd-item">[rr] Raise Rates</div><div class="cmd-item">[dr] Deregulate</div>
                     <div class="cmd-item">[cr] Cut Rates</div>  <div class="cmd-item">[ta] Tariffs</div>
@@ -437,22 +463,22 @@
 
             DOM.telemetry.innerHTML = `
                 <div class="panel-title" style="color:var(--danger);">THEATER COMMAND</div>
-                <div class="metric-row" data-term="strength"><span class="metric-label">ENEMY STRENGTH:</span><span class="metric-value">${Math.max(0, state.war.enemyStrength)}%</span></div>
-                <div class="metric-row" data-term="tension"><span class="metric-label">THEATER TENSION:</span><span class="metric-value ${state.war.tension>80?'warning':''}">${state.war.tension}%</span></div>
-                <div class="metric-row" data-term="casualties"><span class="metric-label">CASUALTIES:</span><span class="metric-value warning">${state.war.casualties}</span></div>
-                <div class="metric-row" data-term="expenditure"><span class="metric-label">WAR EXPENDITURE:</span><span class="metric-value warning">$${state.war.expenditure}B</span></div>
-                <div style="height:15px; border-bottom: 1px dashed var(--danger); margin-bottom: 15px;"></div>
-                <div class="metric-row" data-term="approval"><span class="metric-label">DOMESTIC APP:</span><span class="metric-value">${Math.round(state.approval)}%</span></div>
-                <div class="metric-row" data-term="inflation"><span class="metric-label">INFLATION:</span><span class="metric-value">${state.inflation.toFixed(1)}%</span></div>
+                <div class="metric-row hover-term" data-term="strength"><span class="metric-label">ENEMY STRENGTH:</span><span class="metric-value">${Math.max(0, state.war.enemyStrength)}%</span></div>
+                <div class="metric-row hover-term" data-term="tension"><span class="metric-label">THEATER TENSION:</span><span class="metric-value ${state.war.tension>80?'warning':''}">${state.war.tension}%</span></div>
+                <div class="metric-row hover-term" data-term="casualties"><span class="metric-label">CASUALTIES:</span><span class="metric-value warning">${state.war.casualties}</span></div>
+                <div class="metric-row hover-term" data-term="expenditure"><span class="metric-label">WAR EXPENDITURE:</span><span class="metric-value warning">$${state.war.expenditure}B</span></div>
+                <div style="height:10px; border-bottom: 1px dashed var(--danger); margin-bottom: 10px;"></div>
+                <div class="metric-row hover-term" data-term="approval"><span class="metric-label">DOMESTIC APP:</span><span class="metric-value">${Math.round(state.approval)}%</span></div>
+                <div class="metric-row hover-term" data-term="inflation"><span class="metric-label">INFLATION:</span><span class="metric-value">${state.inflation.toFixed(1)}%</span></div>
             `;
 
             DOM.cmdList.innerHTML = `
-                <div style="text-align:center; font-weight:bold; border-bottom: 1px solid var(--danger); padding-bottom:5px; margin-bottom:10px; color:var(--danger);">TACTICAL DIRECTIVES</div>
-                <div class="cmd-item highlight" style="text-align:center; margin-bottom: 10px; border-color:var(--milton); color:var(--milton);">[am] ASK MILTON (Cost Analysis)</div>
+                <div style="text-align:center; font-weight:bold; padding-bottom:5px; color:var(--danger);">TACTICAL DIRECTIVES</div>
+                <div class="cmd-item highlight" style="border-color:var(--milton); color:var(--milton);">[am] ASK MILTON (Cost Analysis)</div>
                 <div class="cmd-grid">
                     <div class="cmd-item">[as] Airstrike</div>  <div class="cmd-item">[so] Special Ops</div>
                     <div class="cmd-item">[bd] Blockade</div>   <div class="cmd-item">[wd] Withdraw</div>
-                    <div class="cmd-item cmd-item war-highlight" style="grid-column: span 2; text-align:center; margin-top:5px;">[es] ESCALATE (Ground Surge)</div>
+                    <div class="cmd-item war-highlight" style="grid-column: span 2;">[es] ESCALATE (Ground Surge)</div>
                 </div>
             `;
         }
@@ -716,7 +742,6 @@
             if (state.isOn && !DOM.cmd.disabled) setTimeout(() => DOM.cmd.focus(), 10);
         });
 
-        // Use global event delegation to fix the dashboard hover bug
         document.addEventListener('mouseover', (e) => {
             const target = e.target.closest('.hover-term');
             if (!target || !state.isOn) return;
