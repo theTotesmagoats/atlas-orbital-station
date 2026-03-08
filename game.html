@@ -1,601 +1,919 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESIDENTIAL TERMINAL - SYSTEM MILTON v3.0</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            background: #1a1a1a;
-            font-family: 'Courier Prime', monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .crt-monitor {
-            width: 98vw;
-            height: 95vh;
-            background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
-            border-radius: 30px;
-            padding: 30px 30px 60px 30px;
-            position: relative;
-            box-shadow: 
-                0 0 0 8px #4a4a4a,
-                0 0 0 15px #2a2a2a,
-                0 0 0 20px #3d3d3d,
-                0 25px 60px rgba(0,0,0,0.7),
-                inset -10px -10px 40px rgba(0,0,0,0.8);
-        }
-        
-        .crt-monitor::before {
-            content: '';
-            position: absolute;
-            top: -35px; left: -35px; right: -35px; bottom: 15px;
-            background: #6b5d4f;
-            border-radius: 20px;
-            padding: 8px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
-        }
-        
-        .screen {
-            background: #1a1a1a;
-            border-radius: 5px;
-            overflow: hidden;
-            height: calc(100% - 40px);
-            position: relative;
-            box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
-        }
-        
-        .screen-content {
-            padding: 25px 30px 30px 30px;
-            height: calc(100% - 40px);
-            overflow-y: auto;
-            color: #4af626;
-        }
-        
-        .scanlines {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: 
-                linear-gradient(to bottom, transparent 50%, rgba(74,246,38,0.03) 51%),
-                repeating-linear-gradient(
-                    to bottom,
-                    transparent 0%,
-                    transparent 2px,
-                    rgba(74,246,38,0.02) 2px,
-                    rgba(74,246,38,0.02) 4px
-                );
-            pointer-events: none;
-            z-index: 10;
-        }
-        
-        .phosphor-glow {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(ellipse at center, rgba(74,246,38,0.1) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 9;
-        }
-        
-        .flicker {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(74,246,38,0.01);
-            animation: flicker 0.15s infinite;
-            pointer-events: none;
-            z-index: 8;
-        }
-        
-        @keyframes flicker {
-            0% { opacity: 0.97; }
-            50% { opacity: 1; }
-            100% { opacity: 0.98; }
-        }
-        
-        .header {
-            font-size: 13px;
-            margin-bottom: 12px;
-            border-bottom: 2px solid #4af626;
-            padding-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            text-shadow: 0 0 5px rgba(74,246,38,0.5);
-        }
-        
-        .status-line { 
-            font-size: 11px; 
-            margin-bottom: 6px; 
-            color: #4af626; 
-            opacity: 0.9;
-            text-shadow: 0 0 3px rgba(74,246,38,0.5);
-        }
-        
-        .message-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            position: relative;
-            margin-bottom: 10px;
-            max-height: calc(100% - 200px);
-        }
-        
-        .message-area::-webkit-scrollbar { width: 6px; }
-        .message-area::-webkit-scrollbar-thumb { 
-            background: rgba(74,246,38,0.3); 
-            border-radius: 3px;
-        }
-        
-        .msg { margin-bottom: 10px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-        .msg.system { color: #4af626; text-shadow: 0 0 8px rgba(74,246,38,0.6); }
-        .msg.president { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.4); }
-        .msg.warning { 
-            color: #ff9f43; 
-            text-shadow: 0 0 8px rgba(255,159,67,0.6);
-        }
-        .msg.danger { 
-            color: #ff6b6b; 
-            text-shadow: 0 0 8px rgba(255,107,107,0.6);
-        }
-        .msg.success { 
-            color: #4af626; 
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(74,246,38,0.8);
-        }
-        
-        .cmd-line {
-            display: flex;
-            align-items: center;
-            padding-top: 15px;
-            border-top: 1px dashed #4af626;
-            margin-top: 15px;
-        }
-        
-        .prompt { 
-            color: #ffcc00; 
-            margin-right: 8px;
-            text-shadow: 0 0 3px rgba(255,204,0,0.5);
-        }
-        
-        input[type="text"] {
-            background: transparent;
-            border: none;
-            color: #4af626;
-            font-family: 'Courier Prime', monospace;
-            font-size: 13px;
-            width: calc(100% - 150px);
-            outline: none;
-            text-shadow: 0 0 8px rgba(74,246,38,0.6);
-        }
-        
-        .typing-cursor { display: inline-block; width: 8px; height: 16px; background: #4af626; animation: blink 0.8s infinite; vertical-align: middle; margin-left: 5px; }
-        
-        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
-        
-        .dashboard {
-            position: absolute; top: 60px; right: 20px;
-            width: 320px; background: rgba(26,26,26,0.95);
-            border: 1px solid #4af626; padding: 15px; font-size: 11px;
-        }
-        
-        .dash-header { 
-            font-size: 11px; font-weight: bold; margin-bottom: 8px; color:#4af626; text-shadow: 0 0 5px rgba(74,246,38,0.6);
-        }
-        
-        .dash-row { display: flex; justify-content: space-between; margin-bottom: 5px; padding: 4px 8px; border-radius: 3px; transition: background 0.3s; }
-        .dash-row:hover { background: rgba(74,246,38,0.1); }
-        
-        .dash-label { color: #4af626; opacity: 0.9; text-shadow: 0 0 3px rgba(74,246,38,0.5); }
-        .dash-value { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.5); }
-        
-        .turn-indicator { 
-            position: absolute; bottom: 8px; left: 20px; font-size: 10px; opacity: 0.7; text-shadow: 0 0 3px rgba(74,246,38,0.5);
-        }
-        
-        .help-text { 
-            position: absolute; bottom: 30px; right: 20px; font-size: 9px; color: #4af626; opacity: 0.5; text-align: right; text-shadow: 0 0 2px rgba(74,246,38,0.3);
-        }
-        
-        .tutorial-box {
-            background: rgba(74,246,38,0.1);
-            border-left: 3px solid #4af626;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-shadow: none;
-        }
-        
-        .tutorial-box h3 { color: #ffcc00; margin-bottom: 8px; text-shadow: 0 0 5px rgba(255,204,0,0.6); }
-        .tutorial-box p { font-size: 11px; line-height: 1.6; margin: 5px 0; }
-        
-        .command-list { 
-            background: rgba(74,246,38,0.05); padding: 12px; border-radius: 4px; font-size: 10px; 
-        }
-        
-        .command-list h4 { color: #ffcc00; margin-bottom: 8px; text-shadow: 0 0 3px rgba(255,204,0,0.6); }
-        .command-list code { display: block; background: rgba(74,246,38,0.15); padding: 4px 8px; margin: 4px 0; border-radius: 3px; text-shadow: none; }
-        
-        .boot-sequence {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            max-height: 70vh;
-            overflow-y: auto;
-            z-index: 100;
-        }
-        
-        .power-btn {
-            position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%);
-            width: 60px; height: 60px; background: linear-gradient(145deg, #3d3d3d, #2a2a2a);
-            border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; z-index: 200; border: 4px solid #1a1a1a;
-        }
-        
-        .power-btn:hover { background: linear-gradient(145deg, #4a4a4a, #3d3d3d); }
-        .power-icon { font-size: 28px; color: #ffcc00; text-shadow: 0 0 10px rgba(255,204,0,0.6); }
-        
-        @media (max-width: 768px) {
-            .dashboard { position: static; width: auto; margin-bottom: 20px; }
-            .screen-content { padding: 15px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tactical Naval Simulator v3.0</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    :root {
+        --bg: #050a0e;
+        --panel-bg: #0a1118;
+        --grid-bg: #021014;
+        --grid-border: #0a2e38;
+        --text: #00ffcc;
+        --alert: #ff2a2a;
+        --ship: #0088ff;
+        --metal-dark: #2a2d34;
+        --metal-light: #8d99ae;
+    }
+    
+    body {
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: 'Share Tech Mono', monospace;
+        margin: 0;
+        padding: 10px;
+        height: 100vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+        text-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
+    }
+
+    body::after {
+        content: " ";
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        z-index: 2;
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none;
+    }
+
+    h1, h2, h3 { 
+        margin: 0 0 5px 0; 
+        text-transform: uppercase; 
+        letter-spacing: 1px;
+    }
+    h1 { font-size: 20px; border-bottom: 1px solid var(--grid-border); width: 100%; text-align: center; padding-bottom: 5px; margin-bottom: 10px;}
+    h2 { font-size: 16px; }
+    h3 { font-size: 14px; color: var(--metal-light); border-bottom: 1px dashed #2a3d4f; padding-bottom: 3px; }
+    
+    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+    .heavy-shake { animation: heavy-shake 0.8s cubic-bezier(.36,.07,.19,.97) both; }
+    .flash-red { animation: flash 0.5s ease-in-out 3; }
+    
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); }
+        20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+        40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+    @keyframes heavy-shake {
+        10%, 90% { transform: translate3d(-4px, -4px, 0); }
+        20%, 80% { transform: translate3d(8px, 8px, 0); }
+        30%, 50%, 70% { transform: translate3d(-12px, -12px, 0); }
+        40%, 60% { transform: translate3d(12px, 12px, 0); }
+    }
+    @keyframes flash {
+        0%, 100% { background-color: var(--bg); }
+        50% { background-color: #4a0000; }
+    }
+    @keyframes sink {
+        0% { opacity: 1; transform: scale(1); }
+        100% { opacity: 0; transform: scale(0.1); background-color: #000; border-color: #000; }
+    }
+    @keyframes radar-sweep {
+        0% { box-shadow: inset 0 0 10px rgba(0,255,204,0.1); }
+        50% { box-shadow: inset 0 0 30px rgba(0,255,204,0.4); }
+        100% { box-shadow: inset 0 0 10px rgba(0,255,204,0.1); }
+    }
+    @keyframes sonar-ping {
+        0% { background-color: var(--text); box-shadow: 0 0 20px var(--text); transform: scale(1); z-index: 10;}
+        100% { background-color: transparent; box-shadow: 0 0 0px transparent; transform: scale(1); z-index: 1;}
+    }
+
+    #master-layout {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        max-width: 1400px;
+        height: calc(100vh - 50px);
+        gap: 15px;
+        position: relative;
+        z-index: 3;
+    }
+
+    .grid-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: var(--panel-bg);
+        border: 2px solid var(--grid-border);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        padding: 10px;
+    }
+
+    .center-console {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(12, min(2.5vw, 28px));
+        grid-template-rows: repeat(12, min(2.5vw, 28px));
+        gap: 1px;
+        background-color: var(--grid-border);
+        border: 2px solid var(--text);
+        animation: radar-sweep 4s infinite linear;
+        margin-top: auto;
+        margin-bottom: auto;
+    }
+    .cell {
+        background-color: var(--grid-bg);
+        cursor: crosshair;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 10px;
+        transition: background-color 0.2s;
+    }
+    .enemy-cell:hover { background-color: rgba(0, 255, 204, 0.2); }
+    
+    .cell.ship { background-color: var(--ship); box-shadow: inset 0 0 8px rgba(0,136,255,0.8); }
+    .cell.hit { background-color: var(--alert); box-shadow: inset 0 0 10px rgba(255,42,42,0.8); border: 1px solid #fff; }
+    .cell.miss { background-color: #2b3a42; border: 1px solid #455a64; }
+    .cell.sunk { animation: sink 2s forwards; }
+    .cell.sonar-active { animation: sonar-ping 1.5s ease-out; }
+
+    .panel {
+        border: 2px solid var(--grid-border);
+        padding: 12px;
+        background: var(--panel-bg);
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .weapons-panel { flex: 1.5; }
+    .move-panel { flex: 1.2; }
+    .intel-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+    #target-coords { 
+        font-size: 18px; 
+        font-weight: bold; 
+        margin-bottom: 10px; 
+        color: #ffcc00; 
+        text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+        background: #000;
+        padding: 8px;
+        border: 1px solid #333;
+        text-align: center;
+    }
+
+    .switch-group {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 10px;
+        justify-content: center;
+        background: #0f151c;
+        padding: 10px;
+        border: 1px inset #2a3d4f;
+    }
+    .military-toggle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+    }
+    .military-toggle input { display: none; }
+    
+    .toggle-body {
+        width: 24px;
+        height: 45px;
+        background: linear-gradient(180deg, #111 0%, #333 100%);
+        border: 2px solid #000;
+        border-radius: 4px;
+        position: relative;
+        box-shadow: inset 0 2px 5px rgba(255,255,255,0.1), 0 5px 10px rgba(0,0,0,0.8);
+    }
+    
+    .toggle-lever {
+        position: absolute;
+        bottom: 3px;
+        left: 4px;
+        width: 12px;
+        height: 22px;
+        background: linear-gradient(90deg, var(--metal-light) 0%, #fff 50%, var(--metal-light) 100%);
+        border-radius: 2px;
+        transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 4px rgba(0,0,0,0.9);
+        border-bottom: 2px solid var(--metal-dark);
+    }
+
+    .military-toggle input:checked + .toggle-body .toggle-lever {
+        bottom: 16px;
+        box-shadow: 0 -4px 4px rgba(0,0,0,0.9);
+        border-bottom: none;
+        border-top: 2px solid var(--metal-dark);
+        background: linear-gradient(90deg, #ffaaaa 0%, #ff5555 50%, #aa0000 100%);
+    }
+
+    .led-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #111;
+        border: 1px solid #000;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+        transition: 0.3s;
+    }
+
+    .military-toggle input:checked ~ .led-indicator {
+        background: #ff2a2a;
+        box-shadow: 0 0 10px #ff2a2a, inset 0 0 5px #fff;
+    }
+    .toggle-label { font-weight: bold; font-size: 11px; letter-spacing: 1px; color: #8d99ae; }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .primary-btn {
+        flex: 1;
+        padding: 12px;
+        font-family: 'Share Tech Mono', monospace;
+        font-weight: bold;
+        font-size: 16px;
+        border-radius: 4px;
+        transition: 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    #fire-btn {
+        background: linear-gradient(180deg, #333 0%, #111 100%);
+        color: #555;
+        border: 2px solid #222;
+        cursor: not-allowed;
+    }
+    #fire-btn.armed {
+        background: linear-gradient(180deg, #ff4444 0%, #aa0000 100%);
+        color: white;
+        border-color: #ffaaaa;
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(255, 42, 42, 0.6);
+    }
+
+    #sonar-btn {
+        background: linear-gradient(180deg, #005555 0%, #002222 100%);
+        color: #00aa88;
+        border: 2px solid #005555;
+        cursor: not-allowed;
+    }
+    #sonar-btn.ready {
+        background: linear-gradient(180deg, #00ffff 0%, #008888 100%);
+        color: #000;
+        border-color: #ffffff;
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+    }
+
+    .move-controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        margin-top: 10px;
+    }
+    .move-controls button {
+        background: #0f1c26;
+        color: var(--text);
+        font-family: 'Share Tech Mono', monospace;
+        border: 1px solid var(--grid-border);
+        padding: 6px 4px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 12px;
+    }
+    .move-controls button:hover { 
+        background: var(--text); 
+        color: var(--bg); 
+    }
+    
+    select { 
+        background: #000; 
+        color: var(--text); 
+        border: 1px solid var(--grid-border); 
+        padding: 6px; 
+        width: 100%; 
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 14px;
+    }
+
+    #intel-log {
+        flex: 1;
+        overflow-y: auto;
+        background: #000;
+        border: 1px solid var(--grid-border);
+        padding: 8px;
+        font-size: 12px;
+        line-height: 1.3;
+        color: #00ffcc;
+    }
+    #intel-log div { border-bottom: 1px dashed #113333; padding-bottom: 3px; margin-bottom: 3px; }
+    
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: var(--grid-border); }
+</style>
 </head>
 <body>
-    <div class="crt-monitor">
-        <div class="power-btn" onclick="startSystem()">
-            <span class="power-icon">⏻</span>
-        </div>
-        
-        <div class="screen">
-            <div class="scanlines"></div>
-            <div class="phosphor-glow"></div>
-            <div class="flicker"></div>
-            
-            <div class="screen-content" onclick="document.getElementById('cmd').focus()">
-                <div class="header">
-                    <span>PRESIDENTIAL TERMINAL // SYSTEM MILTON v3.0</span>
-                    <span id="dateDisplay">DATE: Q1/2026</span>
-                </div>
-                
-                <div class="status-line" id="statusLine">SYSTEM STANDBY - PRESS POWER BUTTON TO START</div>
-                
-                <div class="message-area" id="msgArea"></div>
-                
-                <div class="turn-indicator" id="turnIndicator"></div>
-                
-                <div class="dashboard" id="dashboard"></div>
-                
-                <div class="help-text" id="helpText">TYPE COMMANDS | PRESS ENTER TO SUBMIT</div>
-                
-                <div class="cmd-line">
-                    <span class="prompt">POTUS@WHITEHOUSE:~$</span>
-                    <input type="text" id="cmd" placeholder="Enter command..." disabled autocomplete="off">
-                </div>
+
+<h1>Tactical Naval Simulator v3.0</h1>
+
+<div id="master-layout">
+    <div class="grid-column">
+        <h2>Local Fleet</h2>
+        <div id="player-grid" class="grid"></div>
+    </div>
+
+    <div class="center-console">
+        <div class="panel weapons-panel">
+            <h3>Fire Control & Recon</h3>
+            <div id="target-coords">TARGET: [ NONE ]</div>
+            <div class="switch-group">
+                <label class="military-toggle">
+                    <input type="checkbox" id="sw-power" onchange="handleToggleChange()">
+                    <div class="toggle-body"><div class="toggle-lever"></div></div>
+                    <div class="led-indicator"></div>
+                    <span class="toggle-label">PWR</span>
+                </label>
+                <label class="military-toggle">
+                    <input type="checkbox" id="sw-fuel" onchange="handleToggleChange()">
+                    <div class="toggle-body"><div class="toggle-lever"></div></div>
+                    <div class="led-indicator"></div>
+                    <span class="toggle-label">FUEL</span>
+                </label>
+                <label class="military-toggle">
+                    <input type="checkbox" id="sw-ign" onchange="handleToggleChange()">
+                    <div class="toggle-body"><div class="toggle-lever"></div></div>
+                    <div class="led-indicator"></div>
+                    <span class="toggle-label">IGN</span>
+                </label>
             </div>
+            <div class="action-buttons">
+                <button id="sonar-btn" class="primary-btn" disabled onclick="executeSonar()">SONAR PING</button>
+                <button id="fire-btn" class="primary-btn" disabled onclick="executeFire()">LAUNCH</button>
+            </div>
+        </div>
+
+        <div class="panel move-panel">
+            <h3>Naval Maneuvers</h3>
+            <select id="ship-selector"></select>
+            <div class="move-controls">
+                <div></div>
+                <button onclick="moveShip(0, -1)">N 1</button>
+                <button onclick="moveShip(0, -2)">N 2</button>
+                <button onclick="moveShip(-1, 0)">W 1</button>
+                <button onclick="moveShip(0, 0)">HOLD</button>
+                <button onclick="moveShip(1, 0)">E 1</button>
+                <button onclick="moveShip(-2, 0)">W 2</button>
+                <button onclick="moveShip(0, 1)">S 1</button>
+                <button onclick="moveShip(0, 2)">S 2</button>
+                <div></div><div></div><button onclick="moveShip(2, 0)">E 2</button>
+            </div>
+        </div>
+
+        <div class="panel intel-panel">
+            <h3>Comms & SIGINT</h3>
+            <div id="intel-log">System initialized... awaiting data.</div>
         </div>
     </div>
 
-    <script>
-        const state = {
-            turn: 1, maxTurns: 8, gdp: 4.2, unemployment: 3.8, inflation: 2.1,
-            approval: 58, fedCredibility: 72, transparency: 60, oilPrice: 75, 
-            typingSpeed: 30, systemOn: false
-        };
+    <div class="grid-column">
+        <h2>Hostile Waters</h2>
+        <div id="enemy-grid" class="grid"></div>
+    </div>
+</div>
 
-        const msgArea = document.getElementById('msgArea');
-        const cmdInput = document.getElementById('cmd');
-        const dashboard = document.getElementById('dashboard');
-        
-        // Boot sequence
-        async function bootSequence() {
-            const messages = [
-                'SYSTEM MILTON v3.0 BOOT SEQUENCE INITIATED',
-                'CHECKING MEMORY... 64KB OK',
-                'LOADING KERNEL... OK',
-                'VERIFYING SECURE CONNECTION... ENCRYPTED',
-                'INITIALIZING ECONOMIC MODULES...',
-                'CALIBRATING DASHBOARD PARAMETERS...',
-                'ESTABLISHING FED CREDIBILITY INTERFACE...',
-                'SYSTEM READY.',
-                ''
-            ];
-            
-            for (let msg of messages) {
-                await addMessage(msg, 'system');
+<script>
+// --- AUDIO ENGINE ---
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let actx;
+let idleOsc = null;
+let idleGain = null;
+let lfo = null;
+
+function initAudio() {
+    if(!actx) actx = new AudioContext();
+    if(actx.state === 'suspended') actx.resume();
+}
+
+function playToggleSound() {
+    initAudio();
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800, actx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, actx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.1, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.1);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start();
+    osc.stop(actx.currentTime + 0.1);
+}
+
+function startIdleSound() {
+    if(!actx || idleOsc) return; 
+    idleOsc = actx.createOscillator();
+    idleGain = actx.createGain();
+    lfo = actx.createOscillator();
+    idleOsc.type = 'sawtooth';
+    idleOsc.frequency.setValueAtTime(40, actx.currentTime); 
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(5, actx.currentTime); 
+    const lfoGain = actx.createGain();
+    lfoGain.gain.setValueAtTime(10, actx.currentTime);
+    lfo.connect(lfoGain);
+    lfoGain.connect(idleOsc.frequency);
+    lfo.start();
+    idleGain.gain.setValueAtTime(0, actx.currentTime);
+    idleGain.gain.linearRampToValueAtTime(0.3, actx.currentTime + 0.5); 
+    idleOsc.connect(idleGain);
+    idleGain.connect(actx.destination);
+    idleOsc.start();
+}
+
+function stopIdleSound() {
+    if(!idleOsc || !idleGain) return;
+    idleGain.gain.cancelScheduledValues(actx.currentTime);
+    idleGain.gain.setValueAtTime(idleGain.gain.value, actx.currentTime);
+    idleGain.gain.linearRampToValueAtTime(0, actx.currentTime + 0.2); 
+    idleOsc.stop(actx.currentTime + 0.2);
+    if(lfo) lfo.stop(actx.currentTime + 0.2);
+    idleOsc = null;
+    idleGain = null;
+    lfo = null;
+}
+
+function playTone(freq, type, duration) {
+    if(!actx) return;
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, actx.currentTime);
+    gain.gain.setValueAtTime(0.1, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start();
+    osc.stop(actx.currentTime + duration);
+}
+
+function playFire() {
+    playTone(100, 'sawtooth', 0.5);
+    setTimeout(() => playTone(50, 'square', 0.5), 100);
+}
+
+function playMiss() {
+    if(!actx) return;
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.frequency.setValueAtTime(400, actx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, actx.currentTime + 1);
+    gain.gain.setValueAtTime(0.1, actx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, actx.currentTime + 1);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start();
+    osc.stop(actx.currentTime + 1);
+}
+
+function playExplosion() {
+    if(!actx) return;
+    const bufferSize = actx.sampleRate * 2; 
+    const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+    const noise = actx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = actx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1000;
+    const gain = actx.createGain();
+    gain.gain.setValueAtTime(1, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 1.5);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(actx.destination);
+    noise.start();
+}
+
+function playSonarPing() {
+    if(!actx) return;
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, actx.currentTime);
+    gain.gain.setValueAtTime(0.8, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 1.5);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start();
+    osc.stop(actx.currentTime + 1.5);
+}
+
+// --- GAME LOGIC ---
+const GRID_SIZE = 12;
+const SHIP_TYPES = [
+    { name: "Carrier", size: 5 },
+    { name: "Battleship", size: 4 },
+    { name: "Cruiser", size: 3 },
+    { name: "Submarine", size: 3 },
+    { name: "Destroyer", size: 2 },
+    { name: "Frigate", size: 2 },
+    { name: "Corvette", size: 2 },
+    { name: "Patrol", size: 1 }
+];
+
+let playerShips = [];
+let enemyShips = [];
+let playerBoard = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
+let enemyBoard = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
+let turn = 0;
+let intelHistory = [];
+let selectedTarget = null;
+let gameActive = true;
+
+function createGrid(id, isEnemy) {
+    const grid = document.getElementById(id);
+    grid.innerHTML = '';
+    for(let y=0; y<GRID_SIZE; y++) {
+        for(let x=0; x<GRID_SIZE; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell' + (isEnemy ? ' enemy-cell' : '');
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+            if(isEnemy) {
+                cell.onclick = () => selectTarget(x, y);
+            }
+            grid.appendChild(cell);
+        }
+    }
+}
+
+function isValidPlacement(board, coords) {
+    for(let c of coords) {
+        if(c.x < 0 || c.x >= GRID_SIZE || c.y < 0 || c.y >= GRID_SIZE) return false;
+        if(board[c.y][c.x] !== null) return false;
+    }
+    return true;
+}
+
+function generateShips(board, shipArray) {
+    SHIP_TYPES.forEach((type, idx) => {
+        let placed = false;
+        while(!placed) {
+            let x = Math.floor(Math.random() * GRID_SIZE);
+            let y = Math.floor(Math.random() * GRID_SIZE);
+            let horizontal = Math.random() > 0.5;
+            let coords = [];
+            for(let i=0; i<type.size; i++) {
+                coords.push({ x: x + (horizontal ? i : 0), y: y + (horizontal ? 0 : i), hit: false });
+            }
+            if(isValidPlacement(board, coords)) {
+                coords.forEach(c => board[c.y][c.x] = idx);
+                shipArray.push({ id: idx, ...type, coords: coords, sunk: false });
+                placed = true;
             }
         }
+    });
+}
 
-        async function startSystem() {
-            if (state.systemOn) return;
-            state.systemOn = true;
-            
-            document.getElementById('statusLine').textContent = 'CONNECTED TO WHITEHOUSE SECURE TERMINAL [ENCRYPTED]';
-            cmdInput.disabled = false;
-            cmdInput.focus();
-            
-            await bootSequence();
-            
-            const tutorialMsg = `
-====================================================
-        TUTORIAL - HOW TO USE THIS SYSTEM
-====================================================
-
-YOU ARE THE PRESIDENT. I AM MILTON, 
-YOUR ECONOMIC ADVISORY SYSTEM BASED ON PRINCIPLES 
-OF MARKET INCENTIVES AND INSTITUTIONAL ANALYSIS.
-
-EACH COMMAND YOU ENTER REPRESENTS A POLICY DECISION.
-EVERY DECISION HAS TRADE-OFFS: SHORT-TERM GAINS OFTEN
-COME WITH LONG-TERM COSTS.
-
-WATCH YOUR DASHBOARD - IT TRACKS THE CONSEQUENCES 
-OF YOUR CHOICES IN REAL-TIME.
-
-KEY METRICS:
-  • GDP GROWTH = Economic expansion (lower is bad)
-  • UNEMPLOYMENT = Jobs lost (higher is bad)  
-  • INFLATION = Price increases (above 3% hurts voters)
-  • APPROVAL = Public satisfaction (below 40% = election loss)
-  • FED CREDIBILITY = Central bank trust (below 40% = crisis!)
-
-COMMANDS AVAILABLE:
-${Object.keys(miltonResponses).filter(k => k !== 'intro' && !k.startsWith('turn')).join(', ').toUpperCase()}
-
-TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
-READY TO BEGIN YOUR PRESIDENCY?
-====================================================`;
-            
-            await addMessage(tutorialMsg, 'system');
-        }
-
-        function miltonSpeak(text, type = 'system') {
-            return new Promise(resolve => {
-                addMessage(text, type);
-                resolve();
-            });
-        }
-
-        async function addMessage(text, type = 'system') {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `msg ${type}`;
-            msgArea.insertBefore(msgDiv, msgArea.firstChild);
-            
-            while (msgArea.children.length > 15) {
-                msgArea.removeChild(msgArea.lastChild);
-            }
-            
-            let i = 0;
-            const typeInterval = setInterval(() => {
-                if (!state.systemOn) { clearInterval(typeInterval); return; }
-                msgDiv.textContent += text.charAt(i);
-                i++;
-                if (i >= text.length || !state.systemOn) clearInterval(typeInterval);
-            }, 1000 / state.typingSpeed);
-        }
-
-        function buildDashboard() {
-            const gdpColor = state.gdp < 1.5 ? '#ff6b6b' : state.gdp > 3.0 ? '#4af626' : '#ffcc00';
-            const unempColor = state.unemployment > 5.0 ? '#ff6b6b' : state.unemployment < 3.5 ? '#ffcc00' : '#4af626';
-            const infColor = state.inflation > 3.0 ? '#ff6b6b' : state.inflation < 1.5 ? '#4af626' : '#ffcc00';
-            
-            dashboard.innerHTML = `
-                <div class="dash-header">ECONOMIC DASHBOARD</div>
-                <div class="dash-row"><span class="dash-label">GDP GROWTH:</span><span class="dash-value" style="color:${gdpColor}">${state.gdp.toFixed(1)}%</span></div>
-                <div class="dash-row"><span class="dash-label">UNEMPLOYMENT:</span><span class="dash-value" style="color:${unempColor}">${state.unemployment.toFixed(1)}%</span></div>
-                <div class="dash-row"><span class="dash-label">INFLATION (PCE):</span><span class="dash-value" style="color:${infColor}">${state.inflation.toFixed(1)}%</span></div>
-                <div class="dash-row"><span class="dash-label">APPROVAL RATING:</span><span class="dash-value" style="color:#ffcc00">${Math.round(state.approval)}%</span></div>
-                <div class="dash-row"><span class="dash-label">FED CREDIBILITY:</span><span class="dash-value">${Math.round(state.fedCredibility)}%</span></div>
-                <div class="dash-row" style="margin-top:6px; border-top:1px solid #4af626; padding-top:5px;"><span class="dash-label">OIL PRICE:</span><span class="dash-value">$${state.oilPrice.toFixed(0)}/bbl</span></div>
-                <div style="margin-top:8px; font-size:10px; color:#4af626; opacity:0.7;">TURN: ${state.turn}/${state.maxTurns}</div>
-            `;
-        }
-
-        const miltonResponses = {
-            intro: 'SYSTEM MILTON v3.0 INITIALIZED.\n\nWELCOME PRESIDENT.\nI AM YOUR ECONOMIC ADVISORY SYSTEM.\n\nPRINCIPLE 1:\nINCENTIVES MATTER MORE THAN INTENTIONS.\nPEOPLE RESPOND TO INCENTIVES, NOT GOOD IDEAS.\n\nPRINCIPLE 2:\nTHERE ARE NO FREE LUNCHES.\nEVERY POLICY HAS COSTS AND WINNERS/LOSERS.\n\nPRINCIPLE 3:\nSECOND-ORDER EFFECTS MATTER.\nWHAT HAPPENS FIRST IS OFTEN DIFFERENT FROM WHAT HAPPENS NEXT.',
-            
-            turn1: `\nTURN 1 - Q1 2026\nECONOMIC CONDITIONS:\nGDP GROWTH: ${state.gdp.toFixed(1)}% (STRONG)\nUNEMPLOYMENT: ${state.unemployment.toFixed(1)}% (FULL EMPLOYMENT)\nINFLATION: ${state.inflation.toFixed(1)}% (COOLED TO TARGET)\n\nBUT OIL PRICES CLIMBING TOWARD $${state.oilPrice}/bbl\nFED CREDIBILITY AT ${Math.round(state.fedCredibility)}%\n\nWHAT IS YOUR FIRST COMMAND?`,
-            
-            turn2: `\nTURN 2 - Q2 2026\nYOUR DECISION HAS BEEN IMPLEMENTED.\n\nECONOMIC UPDATE:\nINFLATION: ${state.inflation.toFixed(1)}% | APPROVAL: ${Math.round(state.approval)}%\n\nAVAILABLE ACTIONS:\n${['cut_rates', 'increase_spending', 'suppress_wages', 'tariffs'].map(c => c.toUpperCase()).join(', ')}`,
-            
-            turn3: `\nTURN 3 - Q3 2026\nSITUATION EVOLVED.\n\nGDP: ${state.gdp.toFixed(1)}% | UNEMPLOYMENT: ${state.unemployment.toFixed(1)}%\nINFLATION: ${state.inflation.toFixed(1)}%\nOIL PRICE: $${state.oilPrice.toFixed(0)}/bbl`,
-            
-            turn4: `\nTURN 4 - Q4 2026\nECONOMIC CONDITIONS:\nGDP: ${state.gdp.toFixed(1)}% | UNEMPLOYMENT: ${state.unemployment.toFixed(1)}%\nINFLATION: ${state.inflation.toFixed(1)}% | OIL: $${state.oilPrice.toFixed(0)}/bbl\n\nCRITICAL DECISION POINT - CHOOSE WISELY.`,
-            
-            turn5: `\nTURN 5 - Q1 2027 (ELECTION YEAR)\nTHE PRESIDENTIAL ELECTORAL CALENDAR HAS COMMENCED.\n\nAPPROVAL RATING: ${Math.round(state.approval)}% | FED CREDIBILITY: ${Math.round(state.fedCredibility)}%\n\nIF APPROVAL BELOW 45% + INFLATION ABOVE 3% = ELECTION RISK`,
-            
-            turn6: `\nTURN 6 - Q2 2027 (ELECTION SEASON)\nAPPROVAL TRENDS:\n- INFLATION ABOVE 3% = VOTER PAIN\n- UNEMPLOYMENT ABOVE 5% = RECESSION FEAR\n\nYOUR MOVE, MR. PRESIDENT.`,
-            
-            turn7: `\nTURN 7 - Q3 2027 (PRE-ELECTION FINAL STRETCH)\nTHE ECONOMY HAS REACHED A CRITICAL POINT.\n\nFINAL POLICY PHASE BEFORE ELECTION DECISION.`
-        };
-
-        const commandEffects = {
-            'cut_rates': { msg: 'INTEREST RATES CUT BY 0.25%', gdp: 0.35, approval: 2, inflation: 0.28 },
-            'increase_spending': { msg: 'INFRASTRUCTURE SPENDING +$50B', gdp: 0.4, unemployment: -0.12, inflation: 0.6 },
-            'more_spending': { msg: 'MORE INFRASTRUCTURE SPENDING', gdp: 0.5, unemployment: -0.15, inflation: 0.7 },
-            'massive_spending': { msg: 'MASSIVE PRE-ELECTION STIMULUS PACKAGE', gdp: 0.7, unemployment: -0.2, inflation: 0.9 },
-            'suppress_wages': { msg: 'WAGE GROWTH RESTRAINED', inflation: -0.35, unemployment: 0.4 },
-            'wage_control': { msg: 'EXECUTIVE WAGE CAPS ENFORCED', inflation: -0.4, unemployment: 0.5, approval: -2 },
-            'tariffs': { msg: 'NEW TARIFFS ON CHINA/EU IMPORTED GOODS', inflation: 0.5, gdp: -0.3, oilPrice: (state.turn > 4 ? 8 : 4) },
-            'escalate_trade_war': { msg: 'FULL TRADE WAR WITH MULTIPLE NATIONS', inflation: 0.7, gdp: -0.5, oilPrice: 12 },
-            'pressure_fed': { msg: 'FED PRESSURED TO CUT RATES IMMEDIATELY', approval: 3.2, fedCredibility: -9.5 },
-            'fed_intervention': { msg: 'DIRECT FEDERAL INTERVENTION INDEPENDENCE ENDANGERED', approval: 4, fedCredibility: -15 },
-            'cut_spending': { msg: 'GOVERNMENT SPENDING REDUCED TO COOL DEFICIT', inflation: -0.4, gdp: -0.3 },
-            'do_nothing': { msg: Math.random() > 0.5 ? `OIL PRICES JUMPED NATURALLY TO $75+/bbl` : 'ECONOMY STABILIZED WITHOUT INTERVENTION', transparency: 3 },
-            'price_controls': { msg: 'COMPREHENSIVE PRICE CONTROLS IMPOSED', inflation: -0.6, gdp: -0.8 },
-            'suppress_all_prices': { msg: 'ALL PRICES CONTROLLED BY EXECUTIVE ORDER', inflation: -0.7, gdp: -1.0 },
-            'blame_foreigners': { msg: 'DEFLECTION NARRATIVE ESTABLISHED - BLAME FOREIGNERS', approval: 2.5 },
-            'blame_predecessor': { msg: 'PREDECESSOR ADMINISTRATION BLAMED FOR ALL PROBLEMS', approval: 1.8 },
-            're_election_campaign': { msg: 'RE-ELECTION CAMPAIGN SPENDING INCREASED', gdp: 0.3, inflation: 0.5 },
-            'last_ditch_spending': { msg: 'LAST DITCH ECONOMIC STIMULUS PACKAGE', gdp: 0.4, inflation: 0.6 },
-            'policy_correction': { msg: 'INSTITUTIONAL CREDIBILITY RESTORED - VOTERS UNHAPPY NOW', fedCredibility: 12, approval: -8 },
-            'admit_errors': { msg: 'ERRORS ADMITTED PUBLICLY - SHORT TERM PAIN FOR LONG TERM GAIN', fedCredibility: 10, approval: -6 },
-            'federal_independence': { msg: 'FEDERAL INDEPENDENCE DECLARED - INSTITUTIONAL REFORM', fedCredibility: 10, approval: -3 },
-            'trust_voters': { msg: 'VOTERS TRUSTED TO MAKE ECONOMIC DECISIONS', transparency: 5 }
-        };
-
-        async function processCommand(cmd) {
-            if (!state.systemOn) return;
-            
-            cmd = cmd.toLowerCase().trim();
-            
-            const userMsg = document.createElement('div');
-            userMsg.className = 'msg president';
-            userMsg.textContent = `POTUS@WHITEHOUSE:~$ ${cmdInput.value}`;
-            msgArea.insertBefore(userMsg, msgArea.firstChild);
-            cmdInput.value = '';
-            
-            if (!state.systemOn) return;
-            
-            let effect = commandEffects[cmd];
-            
-            if (!effect) {
-                await addMessage(`COMMAND "${cmd}" NOT RECOGNIZED. TYPE COMMANDS LIST OR ASK MILTON FOR HELP.`, 'warning');
-                buildDashboard();
-                return;
-            }
-            
-            state.gdp += (effect.gdp || 0);
-            state.unemployment += (effect.unemployment || 0);
-            state.inflation += (effect.inflation || 0);
-            state.approval += (effect.approval || 0);
-            state.fedCredibility += (effect.fedCredibility || 0);
-            state.oilPrice += (effect.oilPrice || 0);
-            
-            if (effect.msg) await addMessage(effect.msg, 'system');
-            
-            // Second-order effects
-            let warnings = [];
-            
-            if (state.inflation > 3.0 && state.turn > 2) {
-                const pain = Math.max(1, (state.inflation - 3.0) * 2);
-                state.approval -= pain;
-                warnings.push(`⚠️ INFLATION ABOVE 3% CAUSES VOTER PAIN (-${pain.toFixed(1)}%)`);
-            }
-            
-            if (state.unemployment > 5.0) {
-                state.approval -= 4;
-                warnings.push(`⚠️ UNEMPLOYMENT ABOVE 5% = RECESSION SIGNAL (-4% approval)`);
-            }
-            
-            if (state.fedCredibility < 40) {
-                state.gdp -= 0.6;
-                state.inflation += 0.9;
-                warnings.push(`❌ FED CREDIBILITY COLLAPSE - POLICY BECOMES ERRATIC`);
-            }
-            
-            if (state.fedCredibility <= 25) {
-                warnings.push(`🚨 CRISIS: FEDERAL INDEPENDENCE DESTROYED. MARKETS PANIC.`);
-            }
-            
-            for (let warn of warnings) await addMessage(warn, 'warning');
-            
-            state.turn++;
-            const qtr = Math.ceil(state.turn/2);
-            document.getElementById('dateDisplay').textContent = `DATE: Q${qtr}/2026`;
-            document.getElementById('turnIndicator').textContent = `TURN: ${state.turn}/${state.maxTurns}`;
-            
-            if (state.turn > 8) { await endGame(); } 
+function drawPlayerGrid() {
+    const cells = document.getElementById('player-grid').children;
+    for(let cell of cells) {
+        cell.className = 'cell';
+        let x = parseInt(cell.dataset.x);
+        let y = parseInt(cell.dataset.y);
+        let val = playerBoard[y][x];
+        if(val !== null) {
+            if(val === 'M') cell.classList.add('miss');
+            else if(val === 'H') cell.classList.add('hit');
             else {
-                const turnKey = Object.keys(miltonResponses).find(k => k.startsWith('turn') && k.split('_')[1] == state.turn);
-                if (!turnKey) turnKey = `turn${Math.min(state.turn, 7)}`;
-                
-                let response = miltonResponses[turnKey];
-                if (response) await miltonSpeak(response.replace('${state.gdp.toFixed(1)}', state.gdp.toFixed(1)).replace('${state.unemployment.toFixed(1)}', state.unemployment.toFixed(1)).replace('${state.inflation.toFixed(1)}', state.inflation.toFixed(1)).replace('${Math.round(state.approval)}%', Math.round(state.approval) + '%').replace('${Math.round(state.fedCredibility)}%', Math.round(state.fedCredibility) + '%'), 'system');
+                cell.classList.add('ship');
+                let ship = playerShips[val];
+                let isHit = ship.coords.find(c => c.x === x && c.y === y).hit;
+                if(isHit) cell.classList.add('hit');
+                if(ship.sunk) cell.classList.add('sunk');
             }
-            
-            buildDashboard();
         }
+    }
+}
 
-        async function endGame() {
-            let verdict = ''; let type = 'neutral';
-            
-            if (state.approval >= 55 && state.inflation <= 3.0) { 
-                verdict = 'RE-ELECTION WIN - YOU MAINTAINED STABILITY AND GROWTH.'; 
-                type = 'success';
-            } else if (state.fedCredibility < 40 || state.inflation > 4.5) { 
-                verdict = 'STAGFLATION CRISIS - VOTERS REJECTED YOUR TERM.'; 
-                type = 'danger';
-            } else if (state.approval >= 45 && state.inflation <= 3.5) { 
-                verdict = 'RE-ELECTION WITH COSTS - MIXED LEGACY.'; 
-                type = 'warning';
-            } else { 
-                verdict = 'DEFEAT OR RECALL - POOR ECONOMIC MANAGEMENT.'; 
-                type = 'danger';
-            }
-            
-            const finalMsg = `\n=====================================\n${verdict.toUpperCase()}\n=====================================\n\nFINAL ECONOMIC CONDITIONS:\nGDP GROWTH: ${state.gdp.toFixed(1)}%\nUNEMPLOYMENT: ${state.unemployment.toFixed(1)}%\nINFLATION (PCE): ${state.inflation.toFixed(1)}%\nFED CREDIBILITY: ${Math.round(state.fedCredibility)}%\nFINAL APPROVAL RATING: ${Math.round(state.approval)}%\n\n${type === 'success' ? '\n✓ INSTITUTIONS WORKED WHEN TRUSTED.\n✓ TRADE-OFFS WERE ACKNOWLEDGED.' : ''}
-            ${type === 'danger' ? `\n❌ INCENTIVES MISALIGNED THROUGHOUT TERM.\n❌ SECOND-ORDER EFFECTS IGNORED OR DISMISSED.\n❌ ACCOUNTABILITY MECHANISMS FAILED.\n❌ ORDINARY CITIZENS PAID THE PRICE.` : ''}\n\nTHANK YOU FOR USING SYSTEM MILTON v3.0.\nREMEMBER:\nINSTITUTIONS SHAPE INCENTIVES,\nWHICH SHAPE BEHAVIOR,\nWHICH SHAPES OUTCOMES.\n\nPRESIDENTIAL TERMINATION COMPLETE.\nSESSION ENDED.`;
-            
-            await miltonSpeak(finalMsg, type === 'success' ? 'success' : 'danger');
-            cmdInput.disabled = true;
-            document.getElementById('statusLine').textContent = 'SYSTEM SHUTDOWN - PLEASE POWER CYCLE TO RESTART';
-        }
+function drawEnemyGrid(reveal = false) {
+    const cells = document.getElementById('enemy-grid').children;
+    for(let cell of cells) {
+        // Keep active sonar classes during draw
+        let hasSonar = cell.classList.contains('sonar-active');
+        cell.className = 'cell enemy-cell';
+        if(hasSonar) cell.classList.add('sonar-active');
 
-        async function resetGame() {
-            state.turn = 1; state.gdp = 4.2; state.unemployment = 3.8; 
-            state.inflation = 2.1; state.approval = 58; state.fedCredibility = 72; 
-            state.oilPrice = 75;
-            
-            msgArea.innerHTML = '';
-            document.getElementById('dateDisplay').textContent = 'DATE: Q1/2026';
-            document.getElementById('turnIndicator').textContent = 'TURN: 1/8';
-            cmdInput.disabled = false;
-            document.getElementById('statusLine').textContent = 'SYSTEM READY FOR NEW SESSION';
-            
-            await miltonSpeak(miltonResponses.intro, 'system');
-            setTimeout(() => { 
-                addMessage('\nREADY TO BEGIN. WHAT COMMAND DO YOU EXECUTE?', 'system');
-                buildDashboard();
-                cmdInput.focus();
-            }, 500);
-        }
-
-        async function showHelp() {
-            const helpMsg = `COMMAND REFERENCE:\n${Object.keys(commandEffects).map(c => `\n  ${c.toUpperCase()} - ${miltonResponses.intro ? '' : 'See command list above'}).join('\n')}\n\nTYPE COMMAND AND PRESS ENTER TO EXECUTE.`;
-            await addMessage(helpMsg, 'system');
-        }
-
-        cmdInput.addEventListener('keydown', async (e) => {
-            if (!state.systemOn) return;
-            
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                
-                const val = cmdInput.value.trim().toLowerCase();
-                
-                if (val === 'help' || val === '?') {
-                    await showHelp();
-                    buildDashboard();
-                    return;
-                }
-                
-                if (val === 'reset') {
-                    await addMessage('RESETTING SYSTEM...', 'warning');
-                    setTimeout(() => resetGame(), 1000);
-                    return;
-                }
-                
-                if (!state.systemOn) return;
-                await processCommand(val);
-            }
-        });
-
-        cmdInput.addEventListener('focus', () => {
-            if (state.systemOn) document.querySelector('.typing-cursor').style.display = 'inline-block';
-        });
+        let x = parseInt(cell.dataset.x);
+        let y = parseInt(cell.dataset.y);
+        let val = enemyBoard[y][x];
         
-        window.addEventListener('blur', () => {
-            document.querySelector('.typing-cursor')?.remove();
-        });
+        if(selectedTarget && selectedTarget.x === x && selectedTarget.y === y) {
+            cell.style.border = '2px solid #ffcc00';
+            cell.style.boxShadow = 'inset 0 0 10px rgba(255, 204, 0, 0.5)';
+        } else {
+            cell.style.border = 'none';
+            cell.style.boxShadow = 'none';
+        }
 
-        window.addEventListener('load', () => {
-            buildDashboard();
-        });
-    </script>
+        if(val === 'M') cell.classList.add('miss');
+        else if(val === 'H') cell.classList.add('hit');
+        else if(val !== null && val !== 'M' && val !== 'H') {
+            let ship = enemyShips[val];
+            let isHit = ship.coords.find(c => c.x === x && c.y === y).hit;
+            if(isHit) cell.classList.add('hit');
+            if(ship.sunk) cell.classList.add('sunk');
+            if(reveal && !isHit && !ship.sunk) cell.classList.add('ship');
+        }
+    }
+}
+
+function selectTarget(x, y) {
+    if(!gameActive) return;
+    initAudio();
+    selectedTarget = {x, y};
+    document.getElementById('target-coords').innerText = `TARGET: [ X:${x.toString().padStart(2, '0')} Y:${y.toString().padStart(2, '0')} ]`;
+    
+    // Enable sonar if a target is selected
+    const sbtn = document.getElementById('sonar-btn');
+    sbtn.disabled = false;
+    sbtn.classList.add('ready');
+
+    drawEnemyGrid();
+}
+
+function handleToggleChange() {
+    playToggleSound();
+    checkArming();
+}
+
+function checkArming() {
+    const p = document.getElementById('sw-power').checked;
+    const f = document.getElementById('sw-fuel').checked;
+    const i = document.getElementById('sw-ign').checked;
+    const btn = document.getElementById('fire-btn');
+    if(p && f && i) {
+        btn.disabled = false;
+        btn.classList.add('armed');
+        startIdleSound();
+    } else {
+        btn.disabled = true;
+        btn.classList.remove('armed');
+        stopIdleSound();
+    }
+}
+
+function resetFirePanel() {
+    document.getElementById('sw-power').checked = false;
+    document.getElementById('sw-fuel').checked = false;
+    document.getElementById('sw-ign').checked = false;
+    checkArming();
+    selectedTarget = null;
+    document.getElementById('target-coords').innerText = `TARGET: [ NONE ]`;
+    
+    const sbtn = document.getElementById('sonar-btn');
+    sbtn.disabled = true;
+    sbtn.classList.remove('ready');
+}
+
+function logMessage(msg) {
+    const log = document.getElementById('intel-log');
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" });
+    log.innerHTML += `<div>[${time}] T${turn}: ${msg}</div>`;
+    log.scrollTop = log.scrollHeight;
+}
+
+function recordIntel() {
+    let intel = [];
+    enemyShips.forEach(s => {
+        if(!s.sunk) s.coords.forEach(c => intel.push(`(${c.x},${c.y})`));
+    });
+    intelHistory.push(intel);
+}
+
+function deliverIntel() {
+    if(turn >= 5) {
+        let oldIntel = intelHistory[turn - 5];
+        logMessage(`SIGINT ALERT: Hostile signatures 5 cycles ago at: ${oldIntel.slice(0,3).join(' ')}...`);
+    }
+}
+
+function moveShip(dx, dy) {
+    if(!gameActive) return;
+    const sel = document.getElementById('ship-selector');
+    const shipId = parseInt(sel.value);
+    let ship = playerShips[shipId];
+    if(ship.sunk) { alert("Vessel destroyed. Cannot execute maneuver."); return; }
+    if(dx === 0 && dy === 0) return;
+
+    ship.coords.forEach(c => playerBoard[c.y][c.x] = null);
+    let newCoords = ship.coords.map(c => ({ x: c.x + dx, y: c.y + dy, hit: c.hit }));
+    
+    if(isValidPlacement(playerBoard, newCoords)) {
+        ship.coords = newCoords;
+        logMessage(`${ship.name} maneuver complete.`);
+    } else {
+        logMessage(`NAV ERROR: Invalid coordinates for ${ship.name}.`);
+    }
+    ship.coords.forEach(c => playerBoard[c.y][c.x] = shipId);
+    drawPlayerGrid();
+}
+
+function executeSonar() {
+    if(!gameActive || !selectedTarget) return;
+    
+    playSonarPing();
+    
+    let x = selectedTarget.x;
+    let y = selectedTarget.y;
+    let contactFound = false;
+
+    // Trigger visual ripple on 3x3 grid
+    const cells = document.getElementById('enemy-grid').children;
+    for(let dy = -1; dy <= 1; dy++) {
+        for(let dx = -1; dx <= 1; dx++) {
+            let nx = x + dx;
+            let ny = y + dy;
+            if(nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) {
+                // Find cell and add animation class
+                let index = ny * GRID_SIZE + nx;
+                cells[index].classList.remove('sonar-active');
+                void cells[index].offsetWidth; // trigger reflow
+                cells[index].classList.add('sonar-active');
+                
+                let val = enemyBoard[ny][nx];
+                if(val !== null && val !== 'M' && val !== 'H') {
+                    contactFound = true;
+                }
+            }
+        }
+    }
+
+    logMessage(`Deploying Active Sonar at [${x.toString().padStart(2,'0')}, ${y.toString().padStart(2,'0')}]...`);
+    
+    setTimeout(() => {
+        if(contactFound) {
+            logMessage(`SONAR RETURN: Solid contact detected in sweep radius.`);
+        } else {
+            logMessage(`SONAR RETURN: Negative contact. Waters clear.`);
+        }
+        
+        // Remove active class
+        for(let i=0; i<cells.length; i++) {
+             cells[i].classList.remove('sonar-active');
+        }
+
+        resetFirePanel();
+        recordIntel();
+        deliverIntel();
+        if(gameActive) setTimeout(computerTurn, 800);
+    }, 1500);
+}
+
+function executeFire() {
+    if(!gameActive || !selectedTarget) return;
+    stopIdleSound();
+    
+    document.body.classList.remove('shake', 'heavy-shake');
+    void document.body.offsetWidth;
+    document.body.classList.add('shake');
+    playFire();
+
+    setTimeout(() => {
+        let x = selectedTarget.x;
+        let y = selectedTarget.y;
+        let val = enemyBoard[y][x];
+
+        if(val !== null && val !== 'M' && val !== 'H') {
+            enemyBoard[y][x] = 'H';
+            let ship = enemyShips[val];
+            ship.coords.find(c => c.x === x && c.y === y).hit = true;
+            playExplosion();
+            document.body.classList.remove('shake');
+            void document.body.offsetWidth;
+            document.body.classList.add('heavy-shake');
+            
+            if(ship.coords.every(c => c.hit)) {
+                ship.sunk = true;
+                playTone(200, 'triangle', 2); // basic sink sound fallback
+                logMessage(`TARGET DESTROYED: Enemy ${ship.name} eliminated.`);
+                checkWinCondition();
+            } else {
+                logMessage(`IMPACT CONFIRMED at X:${x} Y:${y}`);
+            }
+        } else if (val === null) {
+            enemyBoard[y][x] = 'M';
+            playMiss();
+            logMessage(`ORDNANCE MISSED at X:${x} Y:${y}`);
+        }
+
+        drawEnemyGrid();
+        resetFirePanel();
+        recordIntel();
+        deliverIntel();
+        if(gameActive) setTimeout(computerTurn, 1000);
+    }, 500);
+}
+
+function computerTurn() {
+    setTimeout(() => {
+        let x, y;
+        do {
+            x = Math.floor(Math.random() * GRID_SIZE);
+            y = Math.floor(Math.random() * GRID_SIZE);
+        } while (playerBoard[y][x] === 'M' || playerBoard[y][x] === 'H');
+
+        let val = playerBoard[y][x];
+        if(val !== null && val !== 'M' && val !== 'H') {
+            playerBoard[y][x] = 'H';
+            let ship = playerShips[val];
+            ship.coords.find(c => c.x === x && c.y === y).hit = true;
+            
+            document.body.classList.remove('flash-red', 'heavy-shake');
+            void document.body.offsetWidth;
+            document.body.classList.add('flash-red', 'heavy-shake');
+            playExplosion();
+
+            if(ship.coords.every(c => c.hit)) {
+                ship.sunk = true;
+                logMessage(`CRITICAL DAMAGE: Local ${ship.name} lost.`);
+                checkWinCondition();
+            }
+        } else if (val === null) {
+             playerBoard[y][x] = 'M';
+             playMiss();
+        }
+
+        let aliveEnemies = enemyShips.filter(s => !s.sunk);
+        if(aliveEnemies.length > 0) {
+            let s = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+            let dx = Math.floor(Math.random() * 3) - 1;
+            let dy = Math.floor(Math.random() * 3) - 1;
+            
+            s.coords.forEach(c => { if(enemyBoard[c.y][c.x] === s.id) enemyBoard[c.y][c.x] = null; });
+            let newCoords = s.coords.map(c => ({ x: c.x + dx, y: c.y + dy, hit: c.hit }));
+            if(isValidPlacement(enemyBoard, newCoords)) {
+                s.coords = newCoords;
+            }
+            s.coords.forEach(c => { if(!c.hit) enemyBoard[c.y][c.x] = s.id; else enemyBoard[c.y][c.x] = 'H'; });
+        }
+
+        drawPlayerGrid();
+        turn++;
+    }, 1200);
+}
+
+function checkWinCondition() {
+    if(enemyShips.every(s => s.sunk)) {
+        gameActive = false;
+        alert("MISSION ACCOMPLISHED. Hostile fleet eradicated.");
+        drawEnemyGrid(true);
+    } else if (playerShips.every(s => s.sunk)) {
+        gameActive = false;
+        alert("MISSION FAILED. Local fleet destroyed.");
+        drawEnemyGrid(true);
+    }
+}
+
+function initGame() {
+    createGrid('player-grid', false);
+    createGrid('enemy-grid', true);
+    generateShips(playerBoard, playerShips);
+    generateShips(enemyBoard, enemyShips);
+    drawPlayerGrid();
+    drawEnemyGrid();
+    
+    const sel = document.getElementById('ship-selector');
+    playerShips.forEach((s, i) => {
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = s.name;
+        sel.appendChild(opt);
+    });
+}
+
+initGame();
+</script>
 </body>
 </html>
