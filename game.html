@@ -19,15 +19,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
             padding: 20px;
+            overflow: hidden;
         }
         
         .crt-monitor {
             width: 98vw;
             max-width: 1400px;
             height: 95vh;
-            max-height: 900px;
             background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
             border-radius: 35px;
             padding: 35px 35px 70px 35px;
@@ -38,6 +38,8 @@
                 0 0 0 20px #3d3d3d,
                 0 25px 60px rgba(0,0,0,0.7),
                 inset -10px -10px 40px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
         }
         
         .crt-monitor::before {
@@ -48,22 +50,28 @@
             border-radius: 20px;
             padding: 8px;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+            pointer-events: none;
         }
         
         .screen {
             background: #1a1a1a;
             border-radius: 5px;
             overflow: hidden;
-            height: calc(100% - 40px);
+            flex-grow: 1;
             position: relative;
             box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
         }
         
         .screen-content {
-            padding: 25px 30px 180px 30px; /* More bottom padding for cmd-line */
-            height: calc(100% - 40px);
-            overflow-y: auto;
+            padding: 25px 30px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
             color: #4af626;
+            z-index: 15;
+            position: relative;
         }
         
         .scanlines {
@@ -79,7 +87,7 @@
                     rgba(74,246,38,0.02) 4px
                 );
             pointer-events: none;
-            z-index: 10;
+            z-index: 20;
         }
         
         .phosphor-glow {
@@ -87,7 +95,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background: radial-gradient(ellipse at center, rgba(74,246,38,0.1) 0%, transparent 70%);
             pointer-events: none;
-            z-index: 9;
+            z-index: 19;
         }
         
         .flicker {
@@ -96,7 +104,7 @@
             background: rgba(74,246,38,0.01);
             animation: flicker 0.15s infinite;
             pointer-events: none;
-            z-index: 8;
+            z-index: 18;
         }
         
         @keyframes flicker {
@@ -113,22 +121,29 @@
             display: flex;
             justify-content: space-between;
             text-shadow: 0 0 5px rgba(74,246,38,0.5);
+            flex-shrink: 0;
         }
         
         .status-line { 
             font-size: 11px; 
-            margin-bottom: 6px; 
+            margin-bottom: 15px; 
             color: #4af626; 
             opacity: 0.9;
             text-shadow: 0 0 3px rgba(74,246,38,0.5);
+            flex-shrink: 0;
+        }
+
+        .main-display {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+            gap: 20px;
         }
         
         .message-area {
             flex-grow: 1;
             overflow-y: auto;
-            position: relative;
-            margin-bottom: 0;
-            max-height: calc(100% - 300px); /* More space for bottom UI */
+            padding-right: 15px;
         }
         
         .message-area::-webkit-scrollbar { width: 6px; }
@@ -140,26 +155,16 @@
         .msg { margin-bottom: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; padding-left: 10px; }
         .msg.system { color: #4af626; text-shadow: 0 0 8px rgba(74,246,38,0.6); }
         .msg.president { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.4); }
-        .msg.warning { 
-            color: #ff9f43; 
-            text-shadow: 0 0 8px rgba(255,159,67,0.6);
-        }
-        .msg.danger { 
-            color: #ff6b6b; 
-            text-shadow: 0 0 8px rgba(255,107,107,0.6);
-        }
-        .msg.success { 
-            color: #4af626; 
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(74,246,38,0.8);
-        }
+        .msg.warning { color: #ff9f43; text-shadow: 0 0 8px rgba(255,159,67,0.6); }
+        .msg.danger { color: #ff6b6b; text-shadow: 0 0 8px rgba(255,107,107,0.6); }
+        .msg.success { color: #4af626; font-weight: bold; text-shadow: 0 0 10px rgba(74,246,38,0.8); }
         
-        /* Dashboard positioning */
-        .dashboard-wrapper {
-            position: absolute;
-            top: 50px;
-            right: 25px;
+        .sidebar {
             width: 300px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
         
         .dashboard {
@@ -168,6 +173,7 @@
             padding: 15px; 
             font-size: 11px;
             border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         
         .dash-header { 
@@ -180,22 +186,30 @@
         .dash-label { color: #4af626; opacity: 0.9; text-shadow: 0 0 3px rgba(74,246,38,0.5); }
         .dash-value { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.5); }
         
-        /* Turn indicator */
-        .turn-indicator { 
-            position: absolute; bottom: 130px; left: 35px; font-size: 10px; opacity: 0.7; text-shadow: 0 0 3px rgba(74,246,38,0.5);
+        .info-panel {
+            border: 1px dashed #4af626;
+            padding: 10px;
+            font-size: 10px;
+            color: #4af626;
+            opacity: 0.7;
+            text-shadow: 0 0 3px rgba(74,246,38,0.5);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
         }
         
-        /* Help text */
-        .help-text { 
-            position: absolute; bottom: 120px; right: 35px; font-size: 9px; color: #4af626; opacity: 0.5; text-align: right; text-shadow: 0 0 2px rgba(74,246,38,0.3);
+        .footer-controls {
+            flex-shrink: 0;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        
-        /* Command line */
+
         .cmd-line {
-            position: absolute;
-            bottom: 10px;
-            left: 35px;
-            right: 35px;
             display: flex;
             align-items: center;
             padding-top: 10px;
@@ -226,6 +240,11 @@
             padding: 2px 5px;
         }
         
+        input[type="text"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .typing-cursor { display: inline-block; width: 8px; height: 16px; background: #4af626; animation: blink 0.8s infinite; vertical-align: middle; margin-left: 5px; }
         
         @keyframes blink { 
@@ -233,7 +252,6 @@
             51%, 100% { opacity: 0; } 
         }
         
-        /* Power button */
         .power-btn {
             position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%);
             width: 70px; height: 70px; 
@@ -257,25 +275,6 @@
         
         .power-icon { font-size: 32px; color: #ffcc00; text-shadow: 0 0 10px rgba(255,204,0,0.6); }
         
-        /* Tutorial box */
-        .tutorial-box {
-            background: rgba(74,246,38,0.1);
-            border-left: 3px solid #4af626;
-            padding: 15px; margin-bottom: 20px; text-shadow: none; border-radius: 3px 0 0 3px;
-        }
-        
-        .tutorial-box h3 { color: #ffcc00; margin-bottom: 8px; font-size: 14px; text-shadow: 0 0 5px rgba(255,204,0,0.6); }
-        .tutorial-box p { font-size: 11px; line-height: 1.6; margin: 5px 0; color: #e8f5c9; }
-        
-        .command-list { 
-            background: rgba(74,246,38,0.05); padding: 12px; border-radius: 4px; font-size: 10px; margin-top: 10px;
-        }
-        
-        .command-list h4 { color: #ffcc00; margin-bottom: 8px; text-shadow: 0 0 3px rgba(255,204,0,0.6); font-size: 11px;}
-        .command-list code { 
-            display: block; background: rgba(74,246,38,0.15); padding: 4px 8px; margin: 4px 0; border-radius: 3px; text-shadow: none; color: #aaffaa;
-        }
-
         .sound-toggle {
             position: absolute; top: 50px; left: 25px;
             background: rgba(74,246,38,0.1);
@@ -285,6 +284,7 @@
             font-size: 9px;
             cursor: pointer;
             color: #4af626;
+            z-index: 30;
         }
 
         .sound-toggle:hover { background: rgba(74,246,38,0.2); }
@@ -311,19 +311,27 @@
                 
                 <div class="status-line" id="statusLine">SYSTEM STANDBY - PRESS POWER BUTTON TO START</div>
                 
-                <div class="message-area" id="msgArea"></div>
-                
-                <div class="dashboard-wrapper">
-                    <div class="dashboard" id="dashboard"></div>
+                <div class="main-display">
+                    <div class="message-area" id="msgArea"></div>
+                    
+                    <div class="sidebar">
+                        <div class="dashboard" id="dashboard"></div>
+                        <div class="info-panel" id="infoPanel" style="display: none;">
+                            <div class="info-row">
+                                <span id="turnIndicator">TURN: 1/8</span>
+                            </div>
+                            <div class="info-row">
+                                <span>TYPE COMMANDS & PRESS ENTER</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="turn-indicator" id="turnIndicator"></div>
-                
-                <div class="help-text" id="helpText">TYPE COMMANDS | PRESS ENTER TO SUBMIT</div>
-                
-                <div class="cmd-line">
-                    <span class="prompt">POTUS@WHITEHOUSE:~$</span>
-                    <input type="text" id="cmd" placeholder="Enter command..." disabled autocomplete="off">
+                <div class="footer-controls">
+                    <div class="cmd-line">
+                        <span class="prompt">POTUS@WHITEHOUSE:~$</span>
+                        <input type="text" id="cmd" placeholder="Enter command..." disabled autocomplete="off">
+                    </div>
                 </div>
             </div>
         </div>
@@ -341,76 +349,57 @@
         const cmdInput = document.getElementById('cmd');
         const dashboard = document.getElementById('dashboard');
         const statusLine = document.getElementById('statusLine');
+        const infoPanel = document.getElementById('infoPanel');
         
         // Audio context for retro sounds
         let audioCtx;
         
-        // Generate keyboard click sound using Web Audio API
         function playKeyClick() {
             if (!state.soundEnabled || !audioCtx) return;
-            
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-            
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            
             oscillator.type = 'square';
             oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
             oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.03);
-            
             gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
-            
             oscillator.start(audioCtx.currentTime);
             oscillator.stop(audioCtx.currentTime + 0.03);
         }
 
-        // Typewriter text sound
         function playTypeSound() {
             if (!state.soundEnabled || !audioCtx) return;
-            
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-            
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            
             oscillator.type = 'triangle';
             oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-            
             gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
             gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.05);
-            
             oscillator.start(audioCtx.currentTime);
             oscillator.stop(audioCtx.currentTime + 0.05);
         }
 
-        // Error sound
         function playErrorSound() {
             if (!state.soundEnabled || !audioCtx) return;
-            
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-            
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            
             oscillator.type = 'sawtooth';
             oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
             oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.15);
-            
             gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-            
             oscillator.start(audioCtx.currentTime);
             oscillator.stop(audioCtx.currentTime + 0.15);
         }
 
-        // Success sound
         function playSuccessSound() {
             if (!state.soundEnabled || !audioCtx) return;
-            
             const notes = [440, 554, 659];
             notes.forEach((freq, i) => {
                 setTimeout(() => {
@@ -418,19 +407,16 @@
                     const gain = audioCtx.createGain();
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
-                    
                     osc.type = 'sine';
                     osc.frequency.value = freq;
                     gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                    
                     osc.start(audioCtx.currentTime);
                     osc.stop(audioCtx.currentTime + 0.2);
                 }, i * 100);
             });
         }
 
-        // Initialize audio context on user interaction
         function initAudio() {
             if (!audioCtx && state.soundEnabled) {
                 try {
@@ -443,13 +429,14 @@
         }
 
         function focusInput() {
-            if (state.systemOn && state.soundEnabled) initAudio();
-            cmdInput.focus();
+            if (state.systemOn && !cmdInput.disabled) {
+                if (state.soundEnabled) initAudio();
+                cmdInput.focus();
+            }
         }
 
         async function bootSequence() {
             state.typingSpeed = 25;
-            
             const messages = [
                 'SYSTEM MILTON v3.2 BOOT SEQUENCE INITIATED',
                 '',
@@ -467,6 +454,12 @@
                 if (!state.systemOn) break;
                 await addMessage(msg, 'system');
             }
+            
+            // Re-enable input post-boot
+            cmdInput.disabled = false;
+            infoPanel.style.display = 'block';
+            buildDashboard();
+            focusInput();
         }
 
         async function startSystem() {
@@ -476,7 +469,6 @@
             state.systemOn = true;
             statusLine.textContent = 'CONNECTED TO WHITEHOUSE SECURE TERMINAL [ENCRYPTED]';
             
-            // Initialize audio on first user interaction
             initAudio();
             playSuccessSound();
             
@@ -525,50 +517,42 @@ READY TO BEGIN YOUR PRESIDENCY?
             if (btn) btn.textContent = `SOUND: ${state.soundEnabled ? 'ON' : 'OFF'}`;
         }
 
-        function miltonSpeak(text, type = 'system') {
-            return new Promise(resolve => {
-                addMessage(text, type);
-                resolve();
-            });
-        }
-
         async function addMessage(text, type = 'system') {
             if (!state.systemOn) return;
             
             const msgDiv = document.createElement('div');
             msgDiv.className = `msg ${type}`;
-            msgArea.insertBefore(msgDiv, msgArea.firstChild);
+            msgArea.appendChild(msgDiv);
             
-            // Clear old messages (keep last ~15)
-            while (msgArea.children.length > 20) {
-                if (msgArea.lastChild && !cmdInput.parentNode.contains(msgArea.lastChild)) {
-                    msgArea.removeChild(msgArea.lastChild);
-                } else break;
-            }
-            
-            // Type out message letter by letter at vintage speed with sound
             let i = 0;
-            const typeInterval = setInterval(() => {
-                if (!state.systemOn) { 
-                    clearInterval(typeInterval); 
-                    return; 
-                }
-                
-                msgDiv.textContent += text.charAt(i);
-                i++;
-                
-                // Play typewriter sound for each character (every few chars)
-                if (state.soundEnabled && i % 3 === 0) {
-                    playTypeSound();
-                }
-                
-                if (i >= text.length || !state.systemOn) {
-                    clearInterval(typeInterval);
-                }
-            }, 1000 / state.typingSpeed);
+            return new Promise(resolve => {
+                const typeInterval = setInterval(() => {
+                    if (!state.systemOn) { 
+                        clearInterval(typeInterval); 
+                        resolve(); return; 
+                    }
+                    
+                    msgDiv.textContent += text.charAt(i);
+                    msgArea.scrollTop = msgArea.scrollHeight;
+                    i++;
+                    
+                    if (state.soundEnabled && i % 3 === 0) playTypeSound();
+                    
+                    if (i >= text.length || !state.systemOn) {
+                        clearInterval(typeInterval);
+                        
+                        // Enforce message history limit cleanly
+                        while (msgArea.children.length > 50) {
+                            msgArea.removeChild(msgArea.firstChild);
+                        }
+                        resolve();
+                    }
+                }, 1000 / state.typingSpeed);
+            });
         }
 
         function buildDashboard() {
+            if (!state.systemOn) return;
             const gdpColor = state.gdp < 1.5 ? '#ff6b6b' : state.gdp > 3.0 ? '#4af626' : '#ffcc00';
             const unempColor = state.unemployment > 5.0 ? '#ff6b6b' : state.unemployment < 3.5 ? '#ffcc00' : '#4af626';
             const infColor = state.inflation > 3.0 ? '#ff6b6b' : state.inflation < 1.5 ? '#4af626' : '#ffcc00';
@@ -581,7 +565,6 @@ READY TO BEGIN YOUR PRESIDENCY?
                 <div class="dash-row"><span class="dash-label">APPROVAL RATING:</span><span class="dash-value" style="color:#ffcc00">${Math.round(state.approval)}%</span></div>
                 <div class="dash-row"><span class="dash-label">FED CREDIBILITY:</span><span class="dash-value">${Math.round(state.fedCredibility)}%</span></div>
                 <div class="dash-row" style="margin-top:6px; border-top:1px solid #4af626; padding-top:5px;"><span class="dash-label">OIL PRICE:</span><span class="dash-value">$${state.oilPrice.toFixed(0)}/bbl</span></div>
-                <div style="margin-top:8px; font-size:10px; color:#4af626; opacity:0.7;">TURN: ${state.turn}/${state.maxTurns}</div>
             `;
         }
 
@@ -612,51 +595,39 @@ READY TO BEGIN YOUR PRESIDENCY?
 
         const miltonResponses = {
             turn2: `\nTURN 2 - Q2 2026\nYOUR DECISION HAS BEEN IMPLEMENTED.\n\nECONOMIC UPDATE:\nINFLATION: ${state.inflation.toFixed(1)}% | APPROVAL: ${Math.round(state.approval)}%\n\nAVAILABLE ACTIONS:\n${Object.keys(commandEffects).join(', ').toUpperCase()}`,
-            
             turn3: `\nTURN 3 - Q3 2026\nSITUATION EVOLVED.\n\nGDP: ${state.gdp.toFixed(1)}% | UNEMPLOYMENT: ${state.unemployment.toFixed(1)}%\nINFLATION: ${state.inflation.toFixed(1)}%\nOIL PRICE: $${state.oilPrice.toFixed(0)}/bbl`,
-            
             turn4: `\nTURN 4 - Q4 2026\nECONOMIC CONDITIONS:\nGDP: ${state.gdp.toFixed(1)}% | UNEMPLOYMENT: ${state.unemployment.toFixed(1)}%\nINFLATION: ${state.inflation.toFixed(1)}% | OIL: $${state.oilPrice.toFixed(0)}/bbl\n\nCRITICAL DECISION POINT - CHOOSE WISELY.`,
-            
             turn5: `\nTURN 5 - Q1 2027 (ELECTION YEAR)\nTHE PRESIDENTIAL ELECTORAL CALENDAR HAS COMMENCED.\n\nAPPROVAL RATING: ${Math.round(state.approval)}% | FED CREDIBILITY: ${Math.round(state.fedCredibility)}%\n\nIF APPROVAL BELOW 45% + INFLATION ABOVE 3% = ELECTION RISK`,
-            
             turn6: `\nTURN 6 - Q2 2027 (ELECTION SEASON)\nAPPROVAL TRENDS:\n- INFLATION ABOVE 3% = VOTER PAIN\n- UNEMPLOYMENT ABOVE 5% = RECESSION FEAR\n\nYOUR MOVE, MR. PRESIDENT.`
         };
 
         async function processCommand(cmd) {
-            if (!state.systemOn || !cmdInput.value.trim()) return;
+            if (!state.systemOn || !cmdInput.value.trim() || cmdInput.disabled) return;
             
+            cmdInput.disabled = true; // Disable input while processing
             cmd = cmd.toLowerCase().trim();
             
-            // Add user command to log with keyboard sounds for each char typed
             const userMsg = document.createElement('div');
             userMsg.className = 'msg president';
+            msgArea.appendChild(userMsg);
+            msgArea.scrollTop = msgArea.scrollHeight;
             
             let i = 0;
-            const typeInterval = setInterval(() => {
-                if (!state.systemOn) { 
-                    clearInterval(typeInterval); 
-                    return; 
-                }
-                
-                userMsg.textContent = `POTUS@WHITEHOUSE:~$ ${cmd.substring(0, i + 1)}`;
-                i++;
-                
-                if (state.soundEnabled && i % 3 === 0) {
-                    playKeyClick();
-                }
-                
-                if (i >= cmd.length || !state.systemOn) {
-                    clearInterval(typeInterval);
-                    msgArea.insertBefore(userMsg, msgArea.firstChild);
+            await new Promise(resolve => {
+                const typeInterval = setInterval(() => {
+                    if (!state.systemOn) { clearInterval(typeInterval); resolve(); return; }
                     
-                    // Clear old messages
-                    while (msgArea.children.length > 25) {
-                        if (msgArea.lastChild && !cmdInput.parentNode.contains(msgArea.lastChild)) {
-                            msgArea.removeChild(msgArea.lastChild);
-                        } else break;
+                    userMsg.textContent = `POTUS@WHITEHOUSE:~$ ${cmd.substring(0, i + 1)}`;
+                    i++;
+                    
+                    if (state.soundEnabled && i % 3 === 0) playKeyClick();
+                    
+                    if (i >= cmd.length) {
+                        clearInterval(typeInterval);
+                        resolve();
                     }
-                }
-            }, 1000 / state.typingSpeed);
+                }, 1000 / state.typingSpeed);
+            });
             
             cmdInput.value = '';
             
@@ -665,11 +636,11 @@ READY TO BEGIN YOUR PRESIDENCY?
             if (!effect) {
                 playErrorSound();
                 await addMessage(`COMMAND "${cmd}" NOT RECOGNIZED. TYPE "HELP" FOR COMMAND LIST.`, 'warning');
-                buildDashboard();
+                cmdInput.disabled = false;
+                focusInput();
                 return;
             }
             
-            // Apply effects with bounds checking
             state.gdp += (effect.gdp || 0);
             state.unemployment += (effect.unemployment || 0);
             state.inflation += (effect.inflation || 0);
@@ -677,7 +648,6 @@ READY TO BEGIN YOUR PRESIDENCY?
             state.fedCredibility += (effect.fedCredibility || 0);
             state.oilPrice += (effect.oilPrice || 0);
             
-            // Clamp values to realistic ranges
             if (state.gdp < -5) state.gdp = -5;
             if (state.unemployment > 20) state.unemployment = 20;
             if (state.inflation > 15) state.inflation = 15;
@@ -687,7 +657,6 @@ READY TO BEGIN YOUR PRESIDENCY?
             
             if (effect.msg) await addMessage(effect.msg, 'system');
             
-            // Second-order effects
             let warnings = [];
             
             if (state.inflation > 3.0 && state.turn > 2) {
@@ -718,33 +687,24 @@ READY TO BEGIN YOUR PRESIDENCY?
             
             for (let warn of warnings) await addMessage(warn, 'warning');
             
-            // Advance turn
             state.turn++;
             const qtr = Math.ceil(state.turn/2);
             document.getElementById('dateDisplay').textContent = `DATE: Q${qtr}/2026`;
             document.getElementById('turnIndicator').textContent = `TURN: ${state.turn}/${state.maxTurns}`;
             
-            // Check game end or next turn
             if (state.turn > 8) { 
                 await endGame(); 
             } else {
                 let responseText = '';
+                if (state.turn === 2) responseText = miltonResponses.turn2;
+                else if (state.turn === 3) responseText = miltonResponses.turn3;
+                else if (state.turn === 4) responseText = miltonResponses.turn4;
+                else if (state.turn === 5) responseText = miltonResponses.turn5;
+                else if (state.turn >= 6 && state.turn <= 7) responseText = miltonResponses.turn6;
                 
-                if (state.turn === 2) {
-                    responseText = miltonResponses.turn2;
-                } else if (state.turn === 3) {
-                    responseText = miltonResponses.turn3;
-                } else if (state.turn === 4) {
-                    responseText = miltonResponses.turn4;
-                } else if (state.turn === 5) {
-                    responseText = miltonResponses.turn5;
-                } else if (state.turn >= 6 && state.turn <= 7) {
-                    responseText = miltonResponses.turn6;
-                }
-                
-                if (responseText) {
-                    await addMessage(responseText, 'system');
-                }
+                if (responseText) await addMessage(responseText, 'system');
+                cmdInput.disabled = false;
+                focusInput();
             }
             
             buildDashboard();
@@ -779,13 +739,8 @@ READY TO BEGIN YOUR PRESIDENCY?
         }
 
         async function resetGame() {
-            state.turn = 1; 
-            state.gdp = 4.2; 
-            state.unemployment = 3.8; 
-            state.inflation = 2.1; 
-            state.approval = 58; 
-            state.fedCredibility = 72; 
-            state.oilPrice = 75;
+            state.turn = 1; state.gdp = 4.2; state.unemployment = 3.8; state.inflation = 2.1; 
+            state.approval = 58; state.fedCredibility = 72; state.oilPrice = 75;
             
             msgArea.innerHTML = '';
             document.getElementById('dateDisplay').textContent = 'DATE: Q1/2026';
@@ -800,50 +755,53 @@ READY TO BEGIN YOUR PRESIDENCY?
             for (const [cmd, data] of Object.entries(commandEffects)) {
                 commandText += `\n  ${cmd.toUpperCase()} - ${data.msg}`;
             }
-            
             const helpMsg = `COMMAND REFERENCE:${commandText}\n\nTYPE COMMAND AND PRESS ENTER TO EXECUTE.\nUSE "RESET" TO START OVER.`;
             await addMessage(helpMsg, 'system');
         }
 
-        // Event Listeners - Properly attached after DOM loads
         document.addEventListener('DOMContentLoaded', () => {
             cmdInput.addEventListener('keydown', async (e) => {
-                if (!state.systemOn) return;
+                if (!state.systemOn || cmdInput.disabled) return;
                 
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    
                     const val = cmdInput.value.trim().toLowerCase();
                     
                     if (val === 'help' || val === '?') {
                         playKeyClick();
+                        cmdInput.disabled = true;
+                        cmdInput.value = '';
                         await showHelp();
-                        buildDashboard();
+                        cmdInput.disabled = false;
+                        focusInput();
                         return;
                     }
                     
                     if (val === 'reset') {
+                        cmdInput.disabled = true;
+                        cmdInput.value = '';
                         await addMessage('RESETTING SYSTEM...', 'warning');
-                        setTimeout(() => resetGame(), 1000);
+                        setTimeout(() => { resetGame(); cmdInput.disabled = false; focusInput(); }, 1000);
                         return;
                     }
                     
-                    if (!state.systemOn) return;
                     await processCommand(val);
                 }
                 
-                // Play key click sound as user types
                 if (e.key.length === 1 && state.soundEnabled) {
                     playKeyClick();
                 }
             });
             
             cmdInput.addEventListener('focus', () => {
-                if (state.systemOn && state.soundEnabled) initAudio();
-                const cursor = document.createElement('div');
-                cursor.className = 'typing-cursor';
-                cursor.id = 'cursorIndicator';
-                document.querySelector('.prompt').appendChild(cursor);
+                if (state.systemOn && state.soundEnabled && !cmdInput.disabled) initAudio();
+                const existingCursor = document.getElementById('cursorIndicator');
+                if (!existingCursor) {
+                    const cursor = document.createElement('div');
+                    cursor.className = 'typing-cursor';
+                    cursor.id = 'cursorIndicator';
+                    document.querySelector('.prompt').appendChild(cursor);
+                }
             });
             
             cmdInput.addEventListener('blur', () => {
@@ -851,14 +809,6 @@ READY TO BEGIN YOUR PRESIDENCY?
                 if (cursor) cursor.remove();
             });
         });
-
-        function setupTurnUpdates() {
-            setInterval(() => {
-                if (state.systemOn && state.turn <= 8) {
-                    buildDashboard();
-                }
-            }, 100);
-        }
     </script>
 </body>
 </html>
