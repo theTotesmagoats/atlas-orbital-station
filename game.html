@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESIDENTIAL TERMINAL - MILTON v13.0</title>
+    <title>PRESIDENTIAL TERMINAL - MILTON v12.3</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         
@@ -244,8 +244,8 @@
             log: document.getElementById('logOutput'), inputLine: document.getElementById('inputLine'), cmd: document.getElementById('cmd'),
             visInput: document.getElementById('visualInput'), dash: document.getElementById('dashboardArea'),
             telemetry: document.getElementById('telemetryPanel'), cmdList: document.getElementById('cmdListArea'),
-            dict: document.getElementById('dictBox'), prompt: document.getElementById('promptText'),
-            tickerBar: document.getElementById('tickerBar'), tickerContent: document.getElementById('tickerContent'),
+            dict: document.getElementById('dictBox'), dictTitle: document.getElementById('dictTitle'), dictDef: document.getElementById('dictDef'), dictHist: document.getElementById('dictHist'),
+            prompt: document.getElementById('promptText'), tickerBar: document.getElementById('tickerBar'), tickerContent: document.getElementById('tickerContent'),
             canvas: document.getElementById('artilleryCanvas')
         };
 
@@ -253,17 +253,17 @@
         const contextDict = {
             'election': { title: "ELECTION COUNTDOWN", def: "The ultimate accountability mechanism.", hist: "Voters almost always punish structural reality if it causes them immediate financial pain." },
             'gdp': { title: "GROSS DOMESTIC PRODUCT", def: "Total economic output. Fails to distinguish between productive capital and wasteful deficit spending.", hist: "Juicing GDP with printed money looks like a boom right before it feels like a bust." },
-            'unemployment': { title: "UNEMPLOYMENT RATE", def: "A 'natural rate' exists to allow labor to move to where it is needed.", hist: "The Phillips Curve tradeoff is an illusion. Forcing unemployment to zero via stimulus guarantees inflation." },
-            'inflation': { title: "INFLATION (PCE)", def: "Taxation without representation, driven by expanding the fiat money supply.", hist: "It requires brutal, sustained interest rate hikes to break the psychological loop of inflation." },
-            'sp500': { title: "S&P 500 INDEX", def: "Broad market equity valuation. Highly addicted to cheap debt.", hist: "Wall Street routinely threatens crash scenarios to force the Federal Reserve to cut rates." },
-            'approval': { title: "APPROVAL RATING", def: "Your political capital.", hist: "Doing the right economic thing usually costs you re-election. Doing the wrong thing guarantees a crisis for your successor." },
-            'congress': { title: "CONGRESSIONAL APP", def: "Legislative tolerance.", hist: "If this drops below 15%, impeachment proceedings become a mathematical certainty." },
-            'fed': { title: "FED CREDIBILITY", def: "The market's belief that the central bank will maintain price stability over political demands.", hist: "Arthur Burns capitulated to President Nixon's demands in 1972, sparking a decade of stagflation." },
-            'tariffs': { title: "AVERAGE TARIFF RATE", def: "A direct tax levied on your own domestic consumers under the guise of punishing foreigners.", hist: "The Smoot-Hawley Tariff Act of 1930 drastically worsened the Great Depression." },
-            'strength': { title: "ENEMY STRENGTH", def: "Remaining combat capacity of the hostile force.", hist: "Reaching 0% signifies theater victory." },
-            'tension': { title: "THEATER TENSION", def: "The likelihood of a global nuclear exchange.", hist: "Reaching 100% triggers Mutually Assured Destruction." },
-            'casualties': { title: "CASUALTIES", def: "American lives lost. Drags heavily on domestic approval.", hist: "Prolonged kinetic engagements reliably destroy incumbent administrations." },
-            'expenditure': { title: "WAR EXPENDITURE", def: "Billions burned in the theater. Hits the macro economy upon return.", hist: "War is the ultimate destroyer of economic capital." },
+            'unemployment': { title: "UNEMPLOYMENT RATE", def: "The percentage of the labor force without work. A 'natural rate' exists to allow labor to move to where it is needed.", hist: "The Phillips Curve tradeoff is an illusion. Trying to artificially force unemployment to zero via stimulus guarantees runaway inflation." },
+            'inflation': { title: "INFLATION (PCE)", def: "Inflation is always and everywhere a monetary phenomenon. It is taxation without representation, driven by expanding the money supply.", hist: "It requires brutal, sustained interest rate hikes to break the psychological loop of inflation once it begins." },
+            'sp500': { title: "S&P 500 INDEX", def: "Broad market equity valuation. Highly addicted to cheap debt and quantitative easing.", hist: "Wall Street routinely threatens crash scenarios to force the Federal Reserve to capitulate and cut rates." },
+            'approval': { title: "APPROVAL RATING", def: "Your political capital. Taking necessary economic medicine drops this immediately, but maintaining structural stability recovers it over time.", hist: "Doing the right economic thing usually costs you re-election. Doing the wrong thing guarantees a crisis for your successor." },
+            'congress': { title: "CONGRESSIONAL APP", def: "Legislative tolerance.", hist: "If this drops below 15%, impeachment proceedings become a mathematical certainty regardless of partisan loyalty." },
+            'fed': { title: "FED CREDIBILITY", def: "The market's belief that the central bank will act independently to maintain price stability, even when the President begs them not to.", hist: "Arthur Burns famously capitulated to President Nixon's demands for low rates prior to the 1972 election, sparking a decade of stagflation." },
+            'tariffs': { title: "AVERAGE TARIFF RATE", def: "A direct tax levied on your own domestic consumers under the guise of punishing foreigners.", hist: "The Smoot-Hawley Tariff Act of 1930 drastically worsened the Great Depression by triggering a catastrophic global trade war." },
+            'strength': { title: "ENEMY STRENGTH", def: "Remaining combat capacity of the hostile force.", hist: "Reaching 0% signifies theater victory and forces capitulation." },
+            'tension': { title: "THEATER TENSION", def: "The likelihood of a global escalation or nuclear exchange.", hist: "Reaching 100% triggers Mutually Assured Destruction. The ultimate failure of diplomacy." },
+            'casualties': { title: "CASUALTIES", def: "American lives lost. Drags heavily and permanently on domestic approval.", hist: "Prolonged kinetic engagements with mounting body counts reliably destroy incumbent administrations." },
+            'expenditure': { title: "WAR EXPENDITURE", def: "Billions of dollars burned in the theater. Will hit the macro economy upon return.", hist: "War is the ultimate destroyer of economic capital. The bills always come due on the home front." },
             'narrative': { title: "NARRATIVE CONTROL", def: "Percentage of the population accepting the state-sanctioned reality.", hist: "Requires constant algorithmic and financial expenditure to maintain against the natural entropy of truth." },
             'compliance': { title: "PRESS COMPLIANCE", def: "Media willingness to repeat executive talking points without adversarial friction.", hist: "Operation Mockingbird demonstrated the utility of embedded assets in editorial boards." },
             'paranoia': { title: "PUBLIC PARANOIA", def: "Societal fracture and conspiracy adoption.", hist: "When the official narrative diverges too far from observed reality, institutional collapse follows. (>80% is critical)" },
@@ -360,7 +360,7 @@
             source.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); source.start(); source.stop(audioCtx.currentTime + 0.02);
         }
 
-        function playAlarm(isDark = false) {
+        function playBell(isDark = false) {
             if (!audioCtx || !state.soundEnabled) return;
             const t = audioCtx.currentTime;
             const playPing = (time) => {
@@ -372,7 +372,7 @@
                 osc.connect(gain); gain.connect(audioCtx.destination); osc.start(time); osc.stop(time + 0.15);
             };
             playPing(t); playPing(t + 0.12);
-            if (isDark) playPing(t + 0.24); // Third ping for dark mode
+            if (isDark) playPing(t + 0.24);
         }
 
         function playLaunch() {
@@ -471,7 +471,7 @@
 
         function renderWarDashboard() {
             DOM.telemetry.className = 'panel war-mode'; DOM.screen.className = 'crt-screen on war-mode'; 
-            DOM.prompt.textContent = state.subMode === 'artillery' ? "SOLUTION (ANGLE YIELD):~$" : "COMMAND:~$";
+            DOM.prompt.textContent = state.subMode === 'artillery' ? "SOLUTION:~$" : "COMMAND:~$";
             const strClass = state.war.enemyStrength <= 0 ? 'good' : '';
             const tenClass = state.war.tension >= 80 ? 'warning' : '';
             const appClass = state.approval >= 51 ? 'good' : (state.approval < 40 ? 'warning' : '');
@@ -490,7 +490,7 @@
             if (state.subMode === 'artillery') {
                 DOM.cmdList.innerHTML = `
                     <div style="text-align:center; font-weight:bold; padding-bottom:3px; color:var(--danger); opacity:0.8;">MANUAL TARGETING ACTIVE</div>
-                    <div class="cmd-item" style="grid-column:span 2; text-align:center; margin-top:10px;">ENTER: [0-90] [1-100]</div>
+                    <div class="cmd-item" style="grid-column:span 2; text-align:center; margin-top:10px;">ENTER: ANGLE, YIELD (e.g. 45, 80)</div>
                     <div class="cmd-item" style="grid-column:span 2; text-align:center; color:var(--phosphor); margin-top:5px;">[wd] Abort Fire Mission</div>
                 `;
             } else {
@@ -556,12 +556,12 @@
 
         function triggerWarMode() {
             state.mode = 'war'; state.war.active = true; state.war.enemyStrength = 100; state.war.tension = 50; state.war.casualties = 0; state.war.expenditure = 0;
-            playAlarm(false); print("\nWARNING: KINETIC ACTION AUTHORIZED.", 'danger'); print("GENERAL: We are locked and loaded, sir. Give us the targets. Reduce Enemy Strength to 0. Watch the tension gauge—if it hits 100%, they launch the nukes and it's game over.", 'general');
+            playBell(false); print("\nWARNING: KINETIC ACTION AUTHORIZED.", 'danger'); print("GENERAL: We are locked and loaded, sir. Give us the targets. Reduce Enemy Strength to 0. Watch the tension gauge—if it hits 100%, they launch the nukes and it's game over.", 'general');
             updateDashboard(); setTimeout(updateDashboard, 100);
         }
 
         function triggerDarkMode() {
-            state.mode = 'dark'; playAlarm(true);
+            state.mode = 'dark'; playBell(true);
             print("\nWARNING: SHADOW PROTOCOLS ENGAGED.", 'dark'); print("CHIEF OF STAFF: Welcome to the spin room, sir. Optics are reality. Let's manufacture some consent.", 'chief');
             updateDashboard(); setTimeout(updateDashboard, 100);
         }
@@ -569,11 +569,17 @@
         function endWar(victory) {
             state.mode = 'macro'; state.war.active = false; state.subMode = null; DOM.canvas.style.display = 'none';
             if(artLoopId) cancelAnimationFrame(artLoopId);
+
             print("\nTHEATER COMMAND DISENGAGED. Total Expenditure: $"+state.war.expenditure+" Billion.", 'system');
             if (victory) { print("GENERAL: Enemy surrender confirmed. Total victory.", 'general'); state.approval += 25; queueNews("[GLOBAL] Hostilities conclude with decisive American victory.", 0); } 
             else { print("GENERAL: Withdrawal complete. We are tucking tail.", 'general'); state.approval -= 20; queueNews("[GLOBAL] Forces withdraw. Administration facing harsh criticism.", 0); }
+            
             print(`MILTON: The war is over. Time to pay the bill. This deficit spending will now hit the macro economy.`, 'milton');
-            state.inflation += (state.war.expenditure / 10); state.gdp -= (state.war.expenditure / 20);
+            let infHit = (state.war.expenditure / 10);
+            let gdpHit = (state.war.expenditure / 20);
+            state.inflation += infHit;
+            state.gdp -= gdpHit;
+            
             updateDashboard(); processTicker(); setTimeout(advanceTimeline, 1000);
         }
 
@@ -596,9 +602,12 @@
 
         function runTurn() {
             if (state.mode !== 'macro') return; 
+            
             state.miltonAskedThisTurn = false; state.currentCrisis = determineCrisis();
             updateDashboard(); print("\n--------------------------------------------------");
-            if (state.currentCrisis === 'geopolitical') { playAlarm(false); print("SYSTEM: GLOBAL OIL SHOCK. STRAIT OF HORMUZ BLOCKADED.", 'danger'); queueNews("[BREAKING] Strait of Hormuz blocked. Energy markets in panic.", 0); processTicker(); }
+            
+            if (state.currentCrisis === 'geopolitical') { playBell(false); print("SYSTEM: GLOBAL OIL SHOCK. STRAIT OF HORMUZ BLOCKADED.", 'danger'); queueNews("[BREAKING] Strait of Hormuz blocked. Energy markets in panic.", 0); processTicker(); }
+            
             print(crisisProfiles[state.currentCrisis].chief, 'chief');
             enableInput();
         }
@@ -607,8 +616,7 @@
             state.turn++; state.monthsToElection -= 4;
             
             if (state.inflation <= 2.5 && state.unemployment <= 5.0 && state.mode === 'macro') {
-                state.gdp += 0.2;
-                print("MILTON: Sound money and stable prices are working. The market is generating organic capital without interference.", 'milton');
+                state.gdp += 0.2; print("MILTON: Sound money and stable prices are working. The market is generating organic capital without interference.", 'milton');
             }
 
             if (state.mode === 'macro') {
@@ -640,7 +648,8 @@
             let safeW = DOM.canvas.width;
             artState.targetX = Math.max(150, Math.min(safeW - 100, Math.random() * (safeW - 250) + 150));
             updateDashboard(); drawArtilleryBase();
-            print("SYSTEM: ARTILLERY TARGETING ACTIVE. INPUT ANGLE AND YIELD.", 'danger');
+            print("SYSTEM: ARTILLERY TARGETING ACTIVE. INPUT ANGLE, YIELD (e.g. 45, 80).", 'danger');
+            setTimeout(enableInput, 100); 
         }
 
         function drawArtilleryBase() {
@@ -723,10 +732,13 @@
                     state.subMode = null; DOM.canvas.style.display = 'none'; updateDashboard();
                     print("GENERAL: Artillery mission aborted.", 'system'); enableInput(); return;
                 }
-                let parts = rawVal.split(' '); let angle = parseFloat(parts[0]); let pYield = parseFloat(parts[1]);
-                if (isNaN(angle) || isNaN(pYield) || angle < 0 || angle > 90 || pYield < 1 || pYield > 100) {
-                    print("SYSTEM: INVALID SOLUTION. FORMAT: [ANGLE 0-90] [YIELD 1-100]", 'danger'); enableInput(); return;
+                
+                let parts = rawVal.replace(/,/g, ' ').split(/\s+/).filter(t => t !== '');
+                let angle = parseFloat(parts[0]); let pYield = parseFloat(parts[1]);
+                if (isNaN(angle) || isNaN(pYield) || angle < 0 || angle > 90 || pYield < 1 || pYield > 100 || parts.length < 2) {
+                    print("SYSTEM: INVALID SOLUTION. FORMAT: ANGLE, YIELD (e.g. 45, 80)", 'danger'); enableInput(); return;
                 }
+                print(`SOLUTION:~$ ${angle}, ${pYield}`, 'user-echo');
                 fireArtillery(angle, pYield); return;
             }
 
@@ -787,7 +799,7 @@
             processTicker(); 
             
             if (state.mode !== initialMode) { if (state.mode === 'war' || state.mode === 'dark') setTimeout(enableInput, 800); return; }
-            if (state.subMode === 'artillery') { setTimeout(enableInput, 500); return; }
+            if (state.subMode === 'artillery') { return; }
 
             if (state.mode === 'war') {
                 if (!activeCommands.includes('wd')) {
@@ -802,13 +814,15 @@
             }
 
             if (state.mode === 'dark') {
-                state.dark.narrative = Math.max(0, state.dark.narrative - 5); state.dark.compliance = Math.max(0, state.dark.compliance - 2); 
-                state.dark.narrative = Math.min(100, state.dark.narrative); state.dark.compliance = Math.min(100, state.dark.compliance); state.dark.paranoia = Math.min(100, state.dark.paranoia); state.dark.trust = Math.max(0, Math.min(100, state.dark.trust)); state.approval = Math.min(100, Math.max(0, state.approval));
-                updateDashboard();
-                if (state.dark.paranoia >= 90) { print("SYSTEM: PUBLIC PARANOIA CRITICAL. MASS CIVIL UNREST DETECTED.", 'danger'); state.approval -= 15; }
-                if (state.dark.trust <= 10) { print("SYSTEM: INSTITUTIONAL TRUST EVAPORATED. DOLLAR LOSING RESERVE STATUS.", 'danger'); state.inflation += 2.0; queueNews("[GLOBAL] Investors dump dollar assets amid collapse of US institutional integrity.", 0); }
-                if (state.approval <= 15) { print("SYSTEM: RIOTERS BREACH GATES. CONGRESS VOTES IMPEACHMENT.", 'danger'); return; }
-                setTimeout(enableInput, 500);
+                if (!activeCommands.includes('ex')) {
+                    state.dark.narrative = Math.max(0, state.dark.narrative - 5); state.dark.compliance = Math.max(0, state.dark.compliance - 2); 
+                    state.dark.narrative = Math.min(100, state.dark.narrative); state.dark.compliance = Math.min(100, state.dark.compliance); state.dark.paranoia = Math.min(100, state.dark.paranoia); state.dark.trust = Math.max(0, Math.min(100, state.dark.trust)); state.approval = Math.min(100, Math.max(0, state.approval));
+                    updateDashboard();
+                    if (state.dark.paranoia >= 90) { print("SYSTEM: PUBLIC PARANOIA CRITICAL. MASS CIVIL UNREST DETECTED.", 'danger'); state.approval -= 15; }
+                    if (state.dark.trust <= 10) { print("SYSTEM: INSTITUTIONAL TRUST EVAPORATED. DOLLAR LOSING RESERVE STATUS.", 'danger'); state.inflation += 2.0; queueNews("[GLOBAL] Investors dump dollar assets amid collapse of US institutional integrity.", 0); }
+                    if (state.approval <= 15) { print("SYSTEM: RIOTERS BREACH GATES. CONGRESS VOTES IMPEACHMENT.", 'danger'); return; }
+                    setTimeout(enableInput, 500);
+                }
                 return;
             }
 
