@@ -47,7 +47,7 @@
 
         .scanlines {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
             background-size: 100% 4px; pointer-events: none; z-index: 50;
         }
         
@@ -98,6 +98,7 @@
         }
         .log-output::-webkit-scrollbar { display: none; }
 
+        /* Crisp text rendering - PURGED GLOW */
         .block { margin-bottom: 15px; line-height: 1.3; text-shadow: none; }
         .block.system { opacity: 0.8; }
         .block.chief { font-weight: bold; color: var(--phosphor); border-left: 3px solid var(--phosphor); padding-left: 15px; }
@@ -214,6 +215,8 @@
             isOn: false, soundEnabled: true,
             mode: 'init', subMode: null, turn: 0, monthsToElection: 48,
             gdp: 2.1, unemployment: 5.1, inflation: 4.8, approval: 48, fedRate: 5.25, fedCred: 80, sp500: 4800, congress: 55, tariff: 0,
+            hasPriceControls: false, currentCrisis: '', miltonAskedThisTurn: false,
+            warTurnTrigger: 99, 
             war: { enemyStrength: 100, tension: 50, casualties: 0, expenditure: 0 },
             dark: { narrative: 45, compliance: 50, paranoia: 25, trust: 75 },
             newsQueue: [], futureNews: [] 
@@ -229,7 +232,62 @@
             canvas: document.getElementById('artilleryCanvas')
         };
 
-        // --- AUDIO ---
+        // --- DICTIONARY ---
+        const contextDict = {
+            'election': { title: "ELECTION COUNTDOWN", def: "The ultimate accountability mechanism.", hist: "Voters almost always punish structural reality if it causes them immediate financial pain." },
+            'gdp': { title: "GROSS DOMESTIC PRODUCT", def: "Total economic output. Fails to distinguish between productive capital and wasteful deficit spending.", hist: "Juicing GDP with printed money looks like a boom right before it feels like a bust." },
+            'unemployment': { title: "UNEMPLOYMENT RATE", def: "The percentage of the labor force without work. A 'natural rate' exists to allow labor mobility.", hist: "Forcing unemployment to zero artificially guarantees massive inflation." },
+            'inflation': { title: "INFLATION (PCE)", def: "Taxation without representation, driven by expanding the money supply.", hist: "Requires brutal, sustained interest rate hikes to break the psychological loop." },
+            'sp500': { title: "S&P 500 INDEX", def: "Broad market equity valuation. Highly addicted to cheap debt.", hist: "Wall Street routinely threatens crash scenarios to force the Fed to cut rates." },
+            'approval': { title: "APPROVAL RATING", def: "Your political capital.", hist: "Doing the right economic thing usually costs you re-election." },
+            'fedRate': { title: "FED FUNDS RATE", def: "The cost of capital. High rates kill inflation but act as monetary gravity on the whole economy.", hist: "Volcker raised this to 20% in 1981 to finally break the back of the Great Inflation." }
+        };
+
+        const macroCommands = {
+            'rr': { shortcut: 'rr', name: 'RAISE RATES', effect: () => { state.fedRate += 0.75; state.inflation -= 0.6; state.sp500 -= 300; state.gdp -= 0.4; queueNews("[FED WATCH] Chairman announces aggressive rate hike.", 0); } },
+            'cr': { shortcut: 'cr', name: 'CUT RATES', effect: () => { state.fedRate = Math.max(0, state.fedRate - 0.75); state.inflation += 0.5; state.sp500 += 400; queueNews("[MARKETS] Fed slashes rates. Easy money returns.", 0); } },
+            'cs': { shortcut: 'cs', name: 'CUT SPENDING', effect: () => { state.inflation -= 0.5; state.gdp -= 0.3; state.approval -= 4; state.congress -= 5; queueNews("[POLICY] White House implements austerity measures.", 0); } },
+            'is': { shortcut: 'is', name: 'INC SPENDING', effect: () => { state.gdp += 0.4; state.inflation += 0.6; state.approval += 3; state.congress += 6; queueNews("[GOV] Spending bill signed into law.", 0); } },
+            'dr': { shortcut: 'dr', name: 'DEREGULATE', effect: () => { state.gdp += 0.5; state.unemployment -= 0.3; state.sp500 += 200; queueNews("[BIZ] Sweeping deregulation enacted across sectors.", 0); } },
+            'ft': { shortcut: 'ft', name: 'FREE TRADE', effect: () => { state.tariff = Math.max(0, state.tariff - 5); state.gdp += 0.3; state.inflation -= 0.2; queueNews("[TRADE] Tariffs slashed. Borders open.", 0); } },
+            'ta': { shortcut: 'ta', name: 'RAISE TARIFFS', effect: () => { state.tariff += 5; state.inflation += 0.6; state.sp500 -= 200; state.approval += 2; queueNews("[TRADE] Administration enacts sweeping tariffs.", 0); } },
+            'pc': { shortcut: 'pc', name: 'PRICE CONTROLS', effect: () => { state.hasPriceControls = true; state.inflation -= 1.5; state.gdp -= 1.2; state.unemployment += 0.8; state.congress -= 8; queueNews("[POLICY] Executive order freezes consumer prices.", 0); } },
+            'qe': { shortcut: 'qe', name: 'QUANT EASE', effect: () => { state.sp500 += 600; state.inflation += 2.0; state.fedCred -= 15; queueNews("[FED] Central bank begins massive asset purchases.", 0); } },
+            'tx': { shortcut: 'tx', name: 'RAISE TAXES', effect: () => { state.gdp -= 0.7; state.inflation -= 0.4; state.approval -= 6; queueNews("[GOV] Major tax hikes enacted to pay down debt.", 0); } },
+            'dm': { shortcut: 'dm', name: 'DEPLOY MILITARY', effect: () => { state.mode = 'war'; triggerWarMode(); } },
+            'do': { shortcut: 'do', name: 'DARK OPS', effect: () => { state.mode = 'dark'; triggerDarkMode(); } },
+            'am': { shortcut: 'am', name: 'ASK MILTON', effect: () => { state.miltonAsked = true; } },
+            'dn': { shortcut: 'dn', name: 'DO NOTHING', effect: () => { state.gdp -= 0.1; } }
+        };
+
+        const warCommands = {
+            'as': { shortcut: 'as', name: 'ARTILLERY STRIKE', effect: () => { initArtilleryMode(); } },
+            'wd': { shortcut: 'wd', name: 'WITHDRAW', effect: () => { endWar(false); } }
+        };
+
+        const darkCommands = {
+            'ff': { shortcut: 'ff', name: 'FEAR CAMPAIGN', effect: () => { state.dark.narrative += 15; state.dark.paranoia += 20; state.approval += 10; state.dark.trust -= 15; queueNews("[ALERT] Homeland Security raises threat level.", 0); } },
+            'ce': { shortcut: 'ce', name: 'CENSOR ENGINE', effect: () => { state.dark.compliance += 20; state.dark.narrative += 10; state.dark.trust -= 15; queueNews("[TECH] Algorithms adjusted for 'platform safety'.", 0); } },
+            'ex': { shortcut: 'ex', name: 'EXIT OPS', effect: () => { endDarkOps(); } }
+        };
+
+        // --- CRISIS DIALOGUE ---
+        const crisisProfiles = {
+            'inflation': { 
+                chief: "CHIEF OF STAFF: Sir, groceries are up 12%. The base is getting crushed. I strongly advise PRICE CONTROLS [pc]. Think of the second-order effect: we cap the prices, the media praises us for fighting corporate monopolies, and our polling rebounds instantly.", 
+                milton: "MILTON: The Chief is confusing optics with economics. If you cap prices, producers will simply stop producing. You aren't eliminating the cost, you are converting it into a time-cost via breadlines and black markets. Restrict the money supply [rr] or [cs]." 
+            },
+            'unemployment': { 
+                chief: "CHIEF OF STAFF: The rust belt is bleeding jobs. Authorize MASSIVE STIMULUS [is] or TARIFFS [ta]. The downstream effect is vital: we save the factories, the local economies stay afloat, and we lock in the blue-collar vote for a generation.", 
+                milton: "MILTON: Stimulus is just taking water from the deep end of the pool and pouring it into the shallow end. Tariffs don't protect workers; they subsidize inefficient domestic monopolies by placing a hidden sales tax on 300 million citizens. DEREGULATE [dr]." 
+            },
+            'stable': {
+                chief: "CHIEF OF STAFF: Numbers look fine, but midterms approach. Let's pass a moderate STIMULUS [ms] to pad our margins. It shows we are 'building the future.' We can't afford to just sit here looking idle.",
+                milton: "MILTON: The hardest discipline for a politician is knowing when to do absolutely nothing. Meddling just to generate campaign footage breeds crisis later. [dn]"
+            }
+        };
+
+        // --- AUDIO ENGINE ---
         let audioCtx; let clickBuffer; let humOscillator;
         function initAudio() {
             if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
@@ -259,89 +317,122 @@
             };
             ping(t); ping(t + 0.12);
         }
+        function playLaunch() { if(!audioCtx || !state.soundEnabled) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(400, audioCtx.currentTime + 1.2); gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.2); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1.2); }
+        function playExplosion() { if(!audioCtx || !clickBuffer || !state.soundEnabled) return; const source = audioCtx.createBufferSource(); source.buffer = clickBuffer; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 800; const gain = audioCtx.createGain(); gain.gain.setValueAtTime(1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8); source.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); source.start(); source.stop(audioCtx.currentTime + 0.8); }
 
-        // --- COMMANDS ---
-        const macroCommands = {
-            'rr': { shortcut: 'rr', name: 'RAISE RATES', effect: () => { state.fedRate += 0.75; state.inflation -= 0.6; state.sp500 -= 300; state.gdp -= 0.4; } },
-            'cr': { shortcut: 'cr', name: 'CUT RATES', effect: () => { state.fedRate = Math.max(0, state.fedRate - 0.75); state.inflation += 0.5; state.sp500 += 400; } },
-            'cs': { shortcut: 'cs', name: 'CUT SPENDING', effect: () => { state.inflation -= 0.5; state.gdp -= 0.3; state.approval -= 4; state.congress -= 5; } },
-            'is': { shortcut: 'is', name: 'INC SPENDING', effect: () => { state.gdp += 0.4; state.inflation += 0.6; state.approval += 3; state.congress += 6; } },
-            'dr': { shortcut: 'dr', name: 'DEREGULATE', effect: () => { state.gdp += 0.5; state.unemployment -= 0.3; state.sp500 += 200; } },
-            'ft': { shortcut: 'ft', name: 'FREE TRADE', effect: () => { state.tariff = Math.max(0, state.tariff - 5); state.gdp += 0.3; state.inflation -= 0.2; } },
-            'ta': { shortcut: 'ta', name: 'RAISE TARIFFS', effect: () => { state.tariff += 5; state.inflation += 0.6; state.sp500 -= 200; state.approval += 2; } },
-            'pc': { shortcut: 'pc', name: 'PRICE CONTROLS', effect: () => { state.hasPriceControls = true; state.inflation -= 1.5; state.gdp -= 1.2; state.unemployment += 0.8; state.congress -= 8; } },
-            'qe': { shortcut: 'qe', name: 'QUANT EASE', effect: () => { state.sp500 += 600; state.inflation += 2.0; state.fedCred -= 15; } },
-            'tx': { shortcut: 'tx', name: 'RAISE TAXES', effect: () => { state.gdp -= 0.7; state.inflation -= 0.4; state.approval -= 6; } },
-            'dm': { shortcut: 'dm', name: 'DEPLOY MILITARY', effect: () => { state.mode = 'war'; triggerWarMode(); } },
-            'do': { shortcut: 'do', name: 'DARK OPS', effect: () => { state.mode = 'dark'; triggerDarkMode(); } },
-            'am': { shortcut: 'am', name: 'ASK MILTON', effect: () => { state.miltonAsked = true; } },
-            'dn': { shortcut: 'dn', name: 'DO NOTHING', effect: () => { state.gdp -= 0.1; } }
-        };
-
-        const warCommands = {
-            'as': { shortcut: 'as', name: 'ARTILLERY STRIKE', effect: () => { initArtilleryMode(); } },
-            'wd': { shortcut: 'wd', name: 'WITHDRAW', effect: () => { endWar(false); } }
-        };
-
-        const darkCommands = {
-            'ff': { shortcut: 'ff', name: 'FEAR CAMPAIGN', effect: () => { state.dark.narrative += 15; state.dark.paranoia += 20; state.approval += 10; state.dark.trust -= 15; } },
-            'sm': { shortcut: 'sm', name: 'SUBSIDIZE MEDIA', effect: () => { state.dark.compliance += 25; state.gdp -= 0.4; } },
-            'ex': { shortcut: 'ex', name: 'EXIT OPS', effect: () => { endDarkOps(); } }
-        };
-
-        // --- CRISIS DIALOGUE ---
-        const crisisProfiles = {
-            'inflation': { 
-                chief: "CHIEF OF STAFF: Sir, inflation is out of control. We need PRICE CONTROLS [pc] now. It shows we're fighting corporate greed and it'll fix our poll numbers overnight.", 
-                milton: "MILTON: Price controls convert a monetary problem into a supply problem. You'll get the vote today and empty shelves tomorrow. To fix this, you must stop the printing presses. RAISE RATES [rr] or CUT SPENDING [cs]." 
-            },
-            'unemployment': { 
-                chief: "CHIEF OF STAFF: The labor market is freezing up. We need a MASSIVE STIMULUS [is] or TARIFFS [ta] to protect jobs. We can't let the voters see those unemployment lines.", 
-                milton: "MILTON: The Chief wants to buy jobs with stolen purchasing power. Stimulus is a sugar high followed by a heart attack. DEREGULATE [dr] and let the market find the natural rate of labor." 
-            }
-        };
-
-        // --- TICKER & DASHBOARD ---
+        // --- TICKER & UI ---
         function queueNews(msg, delay) { if (delay === 0) state.newsQueue.push(msg); else state.futureNews.push({ turn: state.turn + delay, msg }); }
         
         function processTicker() {
             state.futureNews = state.futureNews.filter(e => { if (e.turn <= state.turn) { state.newsQueue.push(e.msg); return false; } return true; });
             let news = state.newsQueue.length ? state.newsQueue : ["[SYSTEM] ALL METRICS NOMINAL."];
             DOM.tickerContent.innerHTML = news.join(" &nbsp;&nbsp; // &nbsp;&nbsp; ");
-            DOM.tickerContent.style.animation = 'none'; void DOM.tickerContent.offsetWidth; DOM.tickerContent.style.animation = null;
-            state.newsQueue = [];
+            if (DOM.tickerContent.dataset.lastUpdate !== state.turn.toString()) {
+                DOM.tickerContent.style.animation = 'none'; void DOM.tickerContent.offsetWidth;
+                DOM.tickerContent.style.animation = null; DOM.tickerContent.dataset.lastUpdate = state.turn.toString();
+            }
+            state.newsQueue = []; 
         }
 
-        function updateDashboard() {
+        function renderMacroDashboard() {
+            DOM.telemetry.className = 'panel'; DOM.screen.className = 'crt-screen on'; DOM.prompt.textContent = "POTUS:~$";
             const gdpClass = state.gdp >= 3 ? 'good' : (state.gdp < 1 ? 'warning' : '');
             const infClass = state.inflation <= 2.5 ? 'good' : (state.inflation > 5 ? 'warning' : '');
+            
             DOM.telemetry.innerHTML = `
                 <div class="panel-title">MACRO TELEMETRY</div>
                 <div class="metric-header"><span>METRIC</span><span>ACTUAL</span><span>TGT</span></div>
+                <div class="metric-row" onmouseover="setDict('election')"><span class="metric-label">MTHS TO ELECTION:</span><span class="metric-value ${state.monthsToElection<=12?'warning':''}">${state.monthsToElection}</span><span class="metric-target">--</span></div>
+                <div style="height:1px; border-bottom: 1px dashed var(--dim); margin-bottom: 6px;"></div>
                 <div class="metric-row" onmouseover="setDict('gdp')"><span class="metric-label">GDP GROWTH:</span><span class="metric-value ${gdpClass}">${state.gdp}%</span><span class="metric-target">3.0%</span></div>
                 <div class="metric-row" onmouseover="setDict('inflation')"><span class="metric-label">INFLATION:</span><span class="metric-value ${infClass}">${state.inflation}%</span><span class="metric-target">2.0%</span></div>
                 <div class="metric-row" onmouseover="setDict('fedRate')"><span class="metric-label">INT RATE:</span><span class="metric-value">${state.fedRate}%</span><span class="metric-target">--</span></div>
                 <div class="metric-row" onmouseover="setDict('sp500')"><span class="metric-label">S&P 500:</span><span class="metric-value">${Math.round(state.sp500)}</span><span class="metric-target">5200</span></div>
-                <div style="height:10px"></div>
-                <div class="metric-row" onmouseover="setDict('approval')"><span class="metric-label">APPROVAL:</span><span class="metric-value">${Math.round(state.approval)}%</span><span class="metric-target">51%</span></div>
+                <div style="height:6px;"></div>
+                <div class="metric-row" onmouseover="setDict('approval')"><span class="metric-label">APP RATING:</span><span class="metric-value">${Math.round(state.approval)}%</span><span class="metric-target">51%</span></div>
             `;
             DOM.cmdList.innerHTML = `
                 <div class="cmd-grid">
                     <div>[rr] Raise Rate</div><div>[cs] Cut Spend</div>
                     <div>[cr] Cut Rate</div><div>[is] Inc Spend</div>
                     <div>[tx] Raise Tax</div><div>[dr] Dereg</div>
+                    <div style="color:var(--dark)">[do] Dark Ops</div><div style="color:var(--war)">[dm] Military</div>
                 </div>
                 <div class="cmd-item highlight" style="margin-top:8px" onclick="DOM.cmd.value='am';processInput()">[am] ASK MILTON</div>
             `;
-            DOM.dash.style.visibility = 'visible'; DOM.tickerBar.style.visibility = 'visible';
         }
 
         function setDict(key) {
-            const d = contextDict[key] || {title:"-", def:"-"};
-            DOM.dictTitle.textContent = d.title; DOM.dictDef.textContent = d.def;
+            const d = contextDict[key];
+            if(d) { DOM.dictTitle.textContent = d.title; DOM.dictDef.textContent = d.def; DOM.dictHist.style.display = 'block'; DOM.dictHist.textContent = "PRECEDENT: " + d.hist; }
         }
 
-        // --- SYSTEM ENGINE ---
+        // --- ARTILLERY SUB-MODULE ---
+        let artCtx; let artLoopId;
+        const artState = { pX: 30, groundY: 220, targetX: 0, proj: null };
+
+        function initArtilleryMode() {
+            state.subMode = 'artillery'; DOM.canvas.style.display = 'block';
+            DOM.canvas.width = DOM.canvas.clientWidth || 400; DOM.canvas.height = 250;
+            artCtx = DOM.canvas.getContext('2d');
+            let safeW = DOM.canvas.width;
+            artState.targetX = Math.max(150, Math.min(safeW - 100, Math.random() * (safeW - 250) + 150));
+            renderWarDashboard(); drawArtilleryBase();
+            print("SYSTEM: ARTILLERY TARGETING ACTIVE. INPUT ANGLE AND YIELD.", 'danger');
+            setTimeout(enableInput, 100); 
+        }
+
+        function drawArtilleryBase() {
+            if (!artCtx) return;
+            artCtx.clearRect(0,0, DOM.canvas.width, DOM.canvas.height);
+            artCtx.strokeStyle = 'rgba(255,176,0,0.5)'; artCtx.beginPath(); artCtx.moveTo(0, artState.groundY); artCtx.lineTo(DOM.canvas.width, artState.groundY); artCtx.stroke();
+            artCtx.fillStyle = '#4af626'; artCtx.fillRect(artState.pX, artState.groundY - 15, 20, 15);
+            artCtx.fillStyle = '#ff4444'; artCtx.fillRect(artState.targetX, artState.groundY - 15, 30, 15);
+        }
+
+        function fireArtillery(angle, pYield) {
+            playLaunch(); state.war.expenditure += 15; 
+            print("[WAR EXPENDITURE DEBITED: $15 BILLION]", 'danger');
+            const v = pYield * 0.25; const rad = angle * Math.PI / 180;
+            artState.proj = { x: artState.pX + 10, y: artState.groundY - 15, vx: v * Math.cos(rad), vy: v * Math.sin(rad), active: true, isPlayer: true };
+            animateProjectile();
+        }
+
+        function animateProjectile() {
+            if (!artCtx || !artState.proj.active) return;
+            artState.proj.x += artState.proj.vx; artState.proj.y -= artState.proj.vy; artState.proj.vy -= 0.5; 
+            drawArtilleryBase();
+            artCtx.fillStyle = artState.proj.isPlayer ? '#ffb000' : '#ff4444';
+            artCtx.beginPath(); artCtx.arc(artState.proj.x, artState.proj.y, 3, 0, Math.PI*2); artCtx.fill();
+            if (artState.proj.y >= artState.groundY) { artState.proj.active = false; handleImpact(); } 
+            else { artLoopId = requestAnimationFrame(animateProjectile); }
+        }
+
+        function handleImpact() {
+            playExplosion(); if (!artCtx) return;
+            if (artState.proj.isPlayer) {
+                let dist = Math.abs(artState.proj.x - (artState.targetX + 15));
+                if (dist < 25) { print("GENERAL: DIRECT HIT!", 'good'); state.war.enemyStrength -= 35; } 
+                else { print("GENERAL: MISS. Ordnance fell short.", 'danger'); }
+                if (state.war.enemyStrength <= 0) { setTimeout(()=>endWar(true), 1500); return; }
+                setTimeout(enemyFire, 1000);
+            } else {
+                let dist = Math.abs(artState.proj.x - (artState.pX + 10));
+                if (dist < 30) { print("GENERAL: BASE HIT! Casualties reported.", 'danger'); state.war.casualties += 40; state.approval -= 5; }
+                updateDashboard(); setTimeout(enableInput, 500);
+            }
+        }
+
+        function enemyFire() {
+            print("GENERAL: INCOMING!", 'danger'); playLaunch();
+            const d = (artState.targetX + 15) - (artState.pX + 10);
+            let vReq = Math.sqrt(d * 0.5); vReq += (Math.random() - 0.5) * 5; 
+            const rad = 135 * Math.PI / 180; 
+            artState.proj = { x: artState.targetX, y: artState.groundY - 15, vx: vReq * Math.cos(rad), vy: vReq * Math.sin(rad), active: true, isPlayer: false };
+            animateProjectile();
+        }
+
+        // --- SYSTEM CORE ---
         function togglePower() {
             if (state.isOn) { location.reload(); return; }
             state.isOn = true; DOM.pLed.classList.add('on'); DOM.screen.classList.add('on');
@@ -353,11 +444,11 @@
             state.mode = 'init';
             state.gdp = (Math.random() * 4 - 1).toFixed(1);
             state.inflation = (Math.random() * 6 + 2).toFixed(1);
-            state.unemployment = (Math.random() * 3 + 4).toFixed(1);
+            state.warTurnTrigger = Math.floor(Math.random() * 5) + 3;
             print("INCOMING BRIEFING: THE PREDECESSOR'S LEGACY");
             print("--------------------------------------------------");
-            print(`Your election victory is absolute, but the economy is not.\nYou have inherited ${state.inflation}% inflation and stalling ${state.gdp}% growth.`);
-            print(`The Fed rate is currently ${state.fedRate}%. Wall Street is nervous.`);
+            print(`Inherited Inflation: ${state.inflation}% | Inherited Growth: ${state.gdp}%`);
+            print(`Months to Election: 48 | Current Fed Rate: ${state.fedRate}%`);
             print("--------------------------------------------------");
             print("FIRST ACTION: ENTER INITIAL POLICY PACKAGE (e.g., rr, cs, dr)");
             DOM.inputLine.style.display = 'flex'; focusTerminal();
@@ -368,38 +459,51 @@
             if (state.monthsToElection <= 0) { print("ELECTION DAY: GAME OVER."); return; }
             
             // Monetary Gravity
-            if (state.fedRate > 6) { state.gdp -= 0.2; state.sp500 -= 50; }
-            if (state.inflation < 2.5 && state.unemployment < 5) state.gdp += 0.2;
+            if (state.fedRate > 6.5) { state.gdp -= 0.3; state.sp500 -= 80; }
+            if (state.inflation <= 2.5 && state.unemployment <= 5.0) state.gdp += 0.2;
+
+            if (state.turn === state.warTurnTrigger) { state.mode = 'war'; triggerWarMode(); return; }
 
             updateDashboard(); processTicker();
             print(`\n--- MONTH ${48 - state.monthsToElection} ---`);
-            const crisis = crisisProfiles['inflation'];
+            const crisis = crisisProfiles[state.inflation > 5 ? 'inflation' : 'stable'];
             print(crisis.chief, 'chief');
             enableInput();
         }
 
         function processInput() {
-            const raw = DOM.cmd.value.toLowerCase().trim();
-            DOM.cmd.value = ''; DOM.visInput.textContent = '';
-            if (!raw) return;
+            let rawVal = DOM.cmd.value.trim().toLowerCase(); DOM.cmd.value = ''; DOM.visInput.textContent = '';
+            if (!rawVal) return;
 
-            if (raw === 'am' || raw === 'ask milton') {
+            if (state.subMode === 'artillery') {
+                let parts = rawVal.replace(/,/g, ' ').split(/\s+/).filter(t => t);
+                let angle = parseFloat(parts[0]); let pYield = parseFloat(parts[1]);
+                if (isNaN(angle) || isNaN(pYield)) { print("SYSTEM: INVALID SOLUTION.", 'danger'); enableInput(); return; }
+                fireArtillery(angle, pYield); return;
+            }
+
+            if (rawVal === 'am' || rawVal === 'ask milton') {
                 print("POTUS:~$ ASK MILTON", 'user-echo');
-                print(crisisProfiles['inflation'].milton, 'milton');
+                print(crisisProfiles[state.inflation > 5 ? 'inflation' : 'stable'].milton, 'milton');
                 enableInput(); return;
             }
 
-            const tokens = raw.split(/[\s,]+/).filter(t => macroCommands[t]);
-            tokens.forEach(t => macroCommands[t].effect());
+            let initialMode = state.mode;
+            let dict = state.mode === 'war' ? warCommands : (state.mode === 'dark' ? darkCommands : macroCommands);
+            let tokens = rawVal.replace(/ and /g, ',').split(',').map(t => t.trim()).filter(t => dict[t]);
             
-            if (state.mode === 'init') { state.mode = 'macro'; print("POLICY INITIALIZED."); }
-            DOM.inputLine.style.display = 'none';
-            setTimeout(advanceTimeline, 800);
+            if (!tokens.length) { print("SYSTEM: UNRECOGNIZED DIRECTIVE.", 'danger'); enableInput(); return; }
+            tokens.forEach(t => dict[t].effect());
+            
+            if (state.mode === 'init') state.mode = 'macro';
+            if (state.mode === initialMode) setTimeout(advanceTimeline, 800); else setTimeout(enableInput, 800);
         }
 
         function focusTerminal() { DOM.cmd.focus(); }
+        function toggleSound() { state.soundEnabled = !state.soundEnabled; DOM.sLed.classList.toggle('on'); if(!state.soundEnabled) stopHum(); else playHum(); }
         DOM.cmd.addEventListener('input', (e) => { DOM.visInput.textContent = e.target.value; });
-        DOM.cmd.addEventListener('keydown', (e) => { if (e.key === 'Enter') processInput(); });
+        DOM.cmd.addEventListener('keydown', (e) => { if (e.key === 'Enter') processInput(); if (e.key.length === 1) playClick(); });
+        document.getElementById('powerLed').parentElement.onclick = togglePower;
     </script>
 </body>
 </html>
