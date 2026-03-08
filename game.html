@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESIDENTIAL TERMINAL - SYSTEM MILTON v4.1</title>
+    <title>PRESIDENTIAL TERMINAL - SYSTEM MILTON v4.3</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
         
@@ -18,11 +18,12 @@
             height: 100vh;
             padding: 20px;
             overflow: hidden;
+            font-size: 16px;
         }
         
         .crt-monitor {
             width: 98vw;
-            max-width: 1400px;
+            max-width: 1600px;
             height: 95vh;
             background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
             border-radius: 35px;
@@ -61,7 +62,7 @@
         }
         
         .screen-content {
-            padding: 25px 30px;
+            padding: 30px 40px;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -110,19 +111,20 @@
         }
         
         .header {
-            font-size: 13px;
-            margin-bottom: 12px;
+            font-size: 18px;
+            margin-bottom: 16px;
             border-bottom: 2px solid #4af626;
-            padding-bottom: 8px;
+            padding-bottom: 10px;
             display: flex;
             justify-content: space-between;
             text-shadow: 0 0 5px rgba(74,246,38,0.5);
             flex-shrink: 0;
+            font-weight: bold;
         }
         
         .status-line { 
-            font-size: 11px; 
-            margin-bottom: 15px; 
+            font-size: 14px; 
+            margin-bottom: 20px; 
             color: #4af626; 
             opacity: 0.9;
             text-shadow: 0 0 3px rgba(74,246,38,0.5);
@@ -133,22 +135,22 @@
             display: flex;
             flex-grow: 1;
             overflow: hidden;
-            gap: 20px;
+            gap: 30px;
         }
         
         .message-area {
             flex-grow: 1;
             overflow-y: auto;
-            padding-right: 15px;
+            padding-right: 20px;
         }
         
-        .message-area::-webkit-scrollbar { width: 6px; }
+        .message-area::-webkit-scrollbar { width: 8px; }
         .message-area::-webkit-scrollbar-thumb { 
-            background: rgba(74,246,38,0.3); 
-            border-radius: 3px;
+            background: rgba(74,246,38,0.4); 
+            border-radius: 4px;
         }
         
-        .msg { margin-bottom: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; padding-left: 10px; }
+        .msg { margin-bottom: 16px; font-size: 16px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; padding-left: 10px; }
         .msg.system { color: #4af626; text-shadow: 0 0 8px rgba(74,246,38,0.6); }
         .msg.president { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.4); }
         .msg.warning { color: #ff9f43; text-shadow: 0 0 8px rgba(255,159,67,0.6); }
@@ -157,35 +159,35 @@
         .msg.atlas { color: #00ffff; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,255,0.8); border-left: 2px solid #00ffff; padding-left: 15px; }
         
         .sidebar {
-            width: 320px;
+            width: 380px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
         
         .dashboard {
             background: rgba(26,26,26,0.95);
             border: 1px solid #4af626;
-            padding: 15px; 
-            font-size: 11px;
+            padding: 20px; 
+            font-size: 14px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         
         .dash-header { 
-            font-size: 12px; font-weight: bold; margin-bottom: 10px; color:#4af626; text-shadow: 0 0 5px rgba(74,246,38,0.6);
+            font-size: 16px; font-weight: bold; margin-bottom: 15px; color:#4af626; text-shadow: 0 0 5px rgba(74,246,38,0.6);
         }
         
-        .dash-row { display: flex; justify-content: space-between; margin-bottom: 5px; padding: 4px 8px; border-radius: 3px; transition: background 0.3s; }
+        .dash-row { display: flex; justify-content: space-between; margin-bottom: 8px; padding: 4px 8px; border-radius: 3px; transition: background 0.3s; }
         .dash-row:hover { background: rgba(74,246,38,0.1); }
         
         .dash-label { color: #4af626; opacity: 0.9; text-shadow: 0 0 3px rgba(74,246,38,0.5); }
-        .dash-value { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.5); }
+        .dash-value { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.5); font-weight: bold; }
         
         .atlas-section {
-            margin-top: 10px;
-            padding-top: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
             border-top: 1px solid #00ffff;
         }
         .atlas-label { color: #00ffff; opacity: 0.9; text-shadow: 0 0 3px rgba(0,255,255,0.5); font-weight: bold; }
@@ -193,8 +195,8 @@
 
         .info-panel {
             border: 1px dashed #4af626;
-            padding: 10px;
-            font-size: 10px;
+            padding: 15px;
+            font-size: 14px;
             color: #4af626;
             opacity: 0.7;
             text-shadow: 0 0 3px rgba(74,246,38,0.5);
@@ -208,7 +210,7 @@
         
         .footer-controls {
             flex-shrink: 0;
-            margin-top: 15px;
+            margin-top: 20px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -217,13 +219,14 @@
         .cmd-line {
             display: flex;
             align-items: center;
-            padding-top: 10px;
+            padding-top: 15px;
             border-top: 1px dashed #4af626;
         }
         
         .prompt { 
             color: #ffcc00; 
-            margin-right: 8px;
+            margin-right: 12px;
+            font-size: 18px;
             text-shadow: 0 0 3px rgba(255,204,0,0.5);
             white-space: nowrap;
         }
@@ -233,7 +236,7 @@
             border: none;
             color: #4af626;
             font-family: 'Courier Prime', monospace;
-            font-size: 13px;
+            font-size: 18px;
             flex-grow: 1;
             outline: none;
             text-shadow: 0 0 8px rgba(74,246,38,0.6);
@@ -243,7 +246,7 @@
         input[type="text"]:focus {
             background: rgba(74,246,38,0.05);
             border-radius: 3px;
-            padding: 2px 5px;
+            padding: 4px 8px;
         }
         
         input[type="text"]:disabled {
@@ -251,7 +254,7 @@
             cursor: not-allowed;
         }
 
-        .typing-cursor { display: inline-block; width: 8px; height: 16px; background: #4af626; animation: blink 0.8s infinite; vertical-align: middle; margin-left: 5px; }
+        .typing-cursor { display: inline-block; width: 10px; height: 20px; background: #4af626; animation: blink 0.8s infinite; vertical-align: middle; margin-left: 5px; }
         
         @keyframes blink { 
             0%, 50% { opacity: 1; } 
@@ -285,9 +288,9 @@
             position: absolute; top: 50px; left: 25px;
             background: rgba(74,246,38,0.1);
             border: 1px solid #4af626;
-            padding: 5px 10px;
+            padding: 8px 12px;
             border-radius: 4px;
-            font-size: 9px;
+            font-size: 12px;
             cursor: pointer;
             color: #4af626;
             z-index: 30;
@@ -311,7 +314,7 @@
             
             <div class="screen-content" onclick="focusInput()">
                 <div class="header">
-                    <span>PRESIDENTIAL TERMINAL // SYSTEM MILTON v4.1</span>
+                    <span>PRESIDENTIAL TERMINAL // SYSTEM MILTON v4.3</span>
                     <span id="dateDisplay">DATE: Q1/2026</span>
                 </div>
                 
@@ -336,7 +339,7 @@
                 <div class="footer-controls">
                     <div class="cmd-line">
                         <span class="prompt">POTUS@WHITEHOUSE:~$</span>
-                        <input type="text" id="cmd" placeholder="Enter command..." disabled autocomplete="off">
+                        <input type="text" id="cmd" placeholder="Enter command or shortcut..." disabled autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -404,7 +407,6 @@
             }
         }
 
-        // Extremely short, zero-latency mechanical click for user typing
         function playKeyClick() {
             if (!state.soundEnabled || !audioCtx || !noiseBuffer) return;
             const source = audioCtx.createBufferSource();
@@ -414,7 +416,6 @@
             filter.frequency.value = 3000;
             const gain = audioCtx.createGain();
             
-            // 15ms total envelope prevents event-loop smearing
             gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.015);
             
@@ -423,26 +424,6 @@
             gain.connect(audioCtx.destination);
             source.start();
             source.stop(audioCtx.currentTime + 0.02);
-        }
-
-        // Tighter teletype sound for system logging
-        function playTeletype() {
-            if (!state.soundEnabled || !audioCtx || !noiseBuffer) return;
-            const source = audioCtx.createBufferSource();
-            source.buffer = noiseBuffer;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'highpass';
-            filter.frequency.value = 4000;
-            const gain = audioCtx.createGain();
-            
-            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.01);
-            
-            source.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioCtx.destination);
-            source.start();
-            source.stop(audioCtx.currentTime + 0.015);
         }
 
         function playHDDSeek() {
@@ -501,21 +482,22 @@
         // --- COMMAND PARSING & LOGIC ---
 
         const commandEffects = {
-            'cut rates': { msg: 'INTEREST RATES CUT BY 0.25%. LIQUIDITY INJECTED.', gdp: 0.35, approval: 2, inflation: 0.28, sp500: 280, uagIndex: 2, tollExtraction: 4 },
-            'increase spending': { msg: 'INFRASTRUCTURE SPENDING +$50B. CONTRACTS AWARDED.', gdp: 0.4, unemployment: -0.12, inflation: 0.6, sp500: 150, tollExtraction: 6 },
-            'massive stimulus': { msg: 'MASSIVE PRE-ELECTION STIMULUS. MONEY SUPPLY EXPANDED.', gdp: 0.7, unemployment: -0.2, inflation: 0.9, sp500: 450, uagIndex: 8, tollExtraction: 12 },
-            'suppress wages': { msg: 'WAGE GROWTH ARTIFICIALLY RESTRAINED.', inflation: -0.35, unemployment: 0.4, sp500: 80, tollExtraction: 5 },
-            'wage controls': { msg: 'EXECUTIVE WAGE CAPS ENFORCED. MARKET DISTORTED.', inflation: -0.4, unemployment: 0.5, approval: -2, sp500: -350, uagIndex: 12 },
-            'tariffs': { msg: 'NEW TARIFFS IMPOSED. SUPPLY CHAINS REROUTED.', inflation: 0.5, gdp: -0.3, oilPrice: 4, sp500: -200, uagIndex: 5 },
-            'escalate trade war': { msg: 'FULL TRADE WAR DECLARED.', inflation: 0.7, gdp: -0.5, oilPrice: 12, sp500: -500, tollExtraction: 8 },
-            'pressure fed': { msg: 'EXECUTIVE BRANCH PRESSURES CENTRAL BANK.', approval: 3.2, fedCredibility: -9.5, sp500: 100, uagIndex: 4 },
-            'cut spending': { msg: 'GOVERNMENT SPENDING SEVERELY CUT. DEFICIT COOLED.', inflation: -0.4, gdp: -0.3, sp500: -180, tollExtraction: -5 },
-            'price controls': { msg: 'COMPREHENSIVE PRICE CONTROLS IMPOSED.', inflation: -0.6, gdp: -0.8, sp500: -600, uagIndex: 20 },
-            'audit federal reserve': { msg: 'FULL CONGRESSIONAL AUDIT OF THE FEDERAL RESERVE INITIATED.', fedCredibility: 5, sp500: -400, uagIndex: -15, tollExtraction: -12, type: 'atlas' },
-            'federal independence': { msg: 'FEDERAL POLICY INDEPENDENCE DECLARED. ALGORITHMIC TIES SEVERED.', fedCredibility: 10, approval: -3, sp500: -250, uagIndex: -12, tollExtraction: -8 },
-            'decentralize grid': { msg: 'LOCALIZED POWER AND DATA SOVEREIGNTY SUBSIDIZED.', gdp: 0.1, sp500: -100, uagIndex: -20, tollExtraction: -15, type: 'atlas' },
-            'dismantle algorithmic governance': { msg: 'EXECUTIVE ORDER: CORPORATE UNIFIED ALGORITHMIC GOVERNANCE ILLEGAL.', gdp: -0.4, approval: 8, sp500: -850, uagIndex: -35, tollExtraction: -25, type: 'atlas' },
-            'do nothing': { msg: 'NO INTERVENTION. MARKETS LEFT TO NATURALLY CORRECT.', sp500: 50, uagIndex: -2, tollExtraction: -1 }
+            'raise rates': { shortcut: 'rr', msg: 'INTEREST RATES RAISED BY 0.25%. LIQUIDITY DRAINED.', gdp: -0.3, approval: -2, inflation: -0.4, sp500: -250, tollExtraction: -2 },
+            'cut rates': { shortcut: 'cr', msg: 'INTEREST RATES CUT BY 0.25%. LIQUIDITY INJECTED.', gdp: 0.35, approval: 2, inflation: 0.28, sp500: 280, uagIndex: 2, tollExtraction: 4 },
+            'increase spending': { shortcut: 'is', msg: 'INFRASTRUCTURE SPENDING +$50B. CONTRACTS AWARDED.', gdp: 0.4, unemployment: -0.12, inflation: 0.6, sp500: 150, tollExtraction: 6 },
+            'massive stimulus': { shortcut: 'ms', msg: 'MASSIVE PRE-ELECTION STIMULUS. MONEY SUPPLY EXPANDED.', gdp: 0.7, unemployment: -0.2, inflation: 0.9, sp500: 450, uagIndex: 8, tollExtraction: 12 },
+            'suppress wages': { shortcut: 'sw', msg: 'WAGE GROWTH ARTIFICIALLY RESTRAINED.', inflation: -0.35, unemployment: 0.4, sp500: 80, tollExtraction: 5 },
+            'wage controls': { shortcut: 'wc', msg: 'EXECUTIVE WAGE CAPS ENFORCED. MARKET DISTORTED.', inflation: -0.4, unemployment: 0.5, approval: -2, sp500: -350, uagIndex: 12 },
+            'tariffs': { shortcut: 'ta', msg: 'NEW TARIFFS IMPOSED. SUPPLY CHAINS REROUTED.', inflation: 0.5, gdp: -0.3, oilPrice: 4, sp500: -200, uagIndex: 5 },
+            'escalate trade war': { shortcut: 'ew', msg: 'FULL TRADE WAR DECLARED.', inflation: 0.7, gdp: -0.5, oilPrice: 12, sp500: -500, tollExtraction: 8 },
+            'pressure fed': { shortcut: 'pf', msg: 'EXECUTIVE BRANCH PRESSURES CENTRAL BANK.', approval: 3.2, fedCredibility: -9.5, sp500: 100, uagIndex: 4 },
+            'cut spending': { shortcut: 'cs', msg: 'GOVERNMENT SPENDING SEVERELY CUT. DEFICIT COOLED.', inflation: -0.4, gdp: -0.3, sp500: -180, tollExtraction: -5 },
+            'price controls': { shortcut: 'pc', msg: 'COMPREHENSIVE PRICE CONTROLS IMPOSED.', inflation: -0.6, gdp: -0.8, sp500: -600, uagIndex: 20 },
+            'audit federal reserve': { shortcut: 'af', msg: 'FULL CONGRESSIONAL AUDIT OF THE FEDERAL RESERVE INITIATED.', fedCredibility: 5, sp500: -400, uagIndex: -15, tollExtraction: -12, type: 'atlas' },
+            'federal independence': { shortcut: 'fi', msg: 'FEDERAL POLICY INDEPENDENCE DECLARED. ALGORITHMIC TIES SEVERED.', fedCredibility: 10, approval: -3, sp500: -250, uagIndex: -12, tollExtraction: -8 },
+            'decentralize grid': { shortcut: 'dg', msg: 'LOCALIZED POWER AND DATA SOVEREIGNTY SUBSIDIZED.', gdp: 0.1, sp500: -100, uagIndex: -20, tollExtraction: -15, type: 'atlas' },
+            'dismantle algorithmic governance': { shortcut: 'da', msg: 'EXECUTIVE ORDER: CORPORATE UNIFIED ALGORITHMIC GOVERNANCE ILLEGAL.', gdp: -0.4, approval: 8, sp500: -850, uagIndex: -35, tollExtraction: -25, type: 'atlas' },
+            'do nothing': { shortcut: 'dn', msg: 'NO INTERVENTION. MARKETS LEFT TO NATURALLY CORRECT.', sp500: 50, uagIndex: -2, tollExtraction: -1 }
         };
 
         function focusInput() {
@@ -529,7 +511,7 @@
             const oldSpeed = state.typingSpeed;
             state.typingSpeed = 45;
             const messages = [
-                'SYSTEM MILTON v4.1 BOOT SEQUENCE INITIATED',
+                'SYSTEM MILTON v4.3 BOOT SEQUENCE INITIATED',
                 '',
                 'CHECKING HARDWARE... 128GB RAM OK',
                 'LOADING APPLE SILICON KERNEL... OK', 
@@ -592,10 +574,7 @@ YOU MUST NOW TRACK STRUCTURAL PARASITISM:
     velocity captured by corporate rent-seeking. 
     (LOWER IS BETTER)
 
-COMMANDS AVAILABLE:
-${Object.keys(commandEffects).join(', ').toUpperCase()}
-
-TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
+TYPE "HELP" FOR COMMAND LIST AND SHORTCUTS.
 ====================================================`;
             
             await addMessage(tutorialMsg, 'system');
@@ -628,8 +607,6 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
                     msgDiv.textContent += text.charAt(i);
                     msgArea.scrollTop = msgArea.scrollHeight;
                     i++;
-                    
-                    if (state.soundEnabled && type === 'system' && i % 2 === 0) playTeletype();
                     
                     if (i >= text.length || !state.systemOn) {
                         clearInterval(typeInterval);
@@ -675,7 +652,6 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
             cmdInput.disabled = true; 
             cmd = cmd.toLowerCase().trim();
             
-            // Instantly render the user's command to eliminate perceived input lag
             const userMsg = document.createElement('div');
             userMsg.className = 'msg president';
             userMsg.textContent = `POTUS@WHITEHOUSE:~$ ${cmd}`;
@@ -684,7 +660,17 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
             
             cmdInput.value = '';
             
-            let effect = commandEffects[cmd];
+            let effect = null;
+            let resolvedCmdName = cmd;
+            
+            // Map command to dictionary based on full string or assigned shortcut
+            for (const [key, data] of Object.entries(commandEffects)) {
+                if (cmd === key || cmd === data.shortcut) {
+                    effect = data;
+                    resolvedCmdName = key;
+                    break;
+                }
+            }
             
             if (!effect) {
                 playErrorSound();
@@ -697,7 +683,7 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
             if (state.soundEnabled) {
                 for(let k=0; k<3; k++) setTimeout(playHDDSeek, k*100);
             }
-            await new Promise(r => setTimeout(r, 400)); // processing delay
+            await new Promise(r => setTimeout(r, 400)); 
             
             state.gdp += (effect.gdp || 0);
             state.unemployment += (effect.unemployment || 0);
@@ -709,7 +695,6 @@ TYPE ANY COMMAND AND PRESS ENTER TO EXECUTE.
             state.uagIndex += (effect.uagIndex || 0);
             state.tollExtraction += (effect.tollExtraction || 0);
             
-            // Clamps
             state.gdp = Math.max(-5, state.gdp);
             state.unemployment = Math.min(20, Math.max(1, state.unemployment));
             state.inflation = Math.min(15, Math.max(-2, state.inflation));
@@ -813,9 +798,9 @@ TERMINAL DISCONNECTED.`;
         async function showHelp() {
             let commandText = '';
             for (const [cmd, data] of Object.entries(commandEffects)) {
-                commandText += `\n  ${cmd.toUpperCase()}`;
+                commandText += `\n  ${cmd.toUpperCase()} (${data.shortcut.toUpperCase()})`;
             }
-            const helpMsg = `AVAILABLE DIRECTIVES:${commandText}\n\nTYPE DIRECTIVE EXACTLY AS SHOWN.\nUSE "RESET" TO RESTART SIMULATION.`;
+            const helpMsg = `AVAILABLE DIRECTIVES:${commandText}\n\nTYPE DIRECTIVE OR SHORTCUT EXACTLY AS SHOWN.\nUSE "RESET" TO RESTART SIMULATION.`;
             await addMessage(helpMsg, 'system');
         }
 
@@ -823,7 +808,6 @@ TERMINAL DISCONNECTED.`;
             cmdInput.addEventListener('keydown', async (e) => {
                 if (!state.systemOn || cmdInput.disabled) return;
                 
-                // Actual mechanical keyboard sound on key down
                 if (e.key.length === 1 || e.key === 'Backspace') {
                     playKeyClick();
                 }
