@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESIDENTIAL TERMINAL - SYSTEM MILTON v5.0</title>
+    <title>PRESIDENTIAL TERMINAL - SYSTEM MILTON v6.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
         
@@ -21,7 +21,6 @@
             font-size: 16px;
         }
         
-        /* BEZEL REDUCED 30% */
         .crt-monitor {
             width: 99vw;
             max-width: 1600px;
@@ -141,10 +140,11 @@
         .msg.system { color: #88ff88; opacity: 0.8; font-style: italic; }
         .msg.president { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.4); font-weight: bold; margin-bottom: 20px;}
         .msg.milton { color: #4af626; text-shadow: 0 0 8px rgba(74,246,38,0.6); border-left: 2px solid #4af626; padding-left: 15px;}
-        .msg.danger { color: #ff6b6b; text-shadow: 0 0 8px rgba(255,107,107,0.6); }
+        .msg.general { color: #ff4444; text-shadow: 0 0 8px rgba(255,68,68,0.6); border-left: 2px solid #ff4444; padding-left: 15px; font-weight: bold;}
+        .msg.danger { color: #ff6b6b; text-shadow: 0 0 8px rgba(255,107,107,0.6); font-weight: bold; }
         
         .sidebar {
-            width: 350px;
+            width: 380px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
@@ -154,18 +154,18 @@
         .dashboard {
             background: rgba(26,26,26,0.95);
             border: 1px solid #4af626;
-            padding: 20px; 
+            padding: 15px 20px; 
             font-size: 14px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         
         .dash-header { 
-            font-size: 16px; font-weight: bold; margin-bottom: 15px; color:#4af626; text-shadow: 0 0 5px rgba(74,246,38,0.6);
+            font-size: 16px; font-weight: bold; margin-bottom: 12px; color:#4af626; text-shadow: 0 0 5px rgba(74,246,38,0.6);
             border-bottom: 1px solid #4af626; padding-bottom: 5px;
         }
         
-        .dash-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 4px 8px; border-radius: 3px; transition: background 0.3s; }
+        .dash-row { display: flex; justify-content: space-between; margin-bottom: 8px; padding: 4px 8px; border-radius: 3px; transition: background 0.3s; }
         
         .hover-term {
             cursor: help;
@@ -188,7 +188,7 @@
             font-size: 14px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            min-height: 200px;
+            min-height: 220px;
             display: flex;
             flex-direction: column;
         }
@@ -238,20 +238,17 @@
             outline: none;
             text-shadow: 0 0 8px rgba(255,255,255,0.6);
             text-transform: lowercase;
+            caret-color: #ffcc00; 
         }
         
         input[type="text"]:focus { background: rgba(74,246,38,0.05); border-radius: 3px; padding: 4px 8px; }
         input[type="text"]:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .typing-cursor { display: inline-block; width: 10px; height: 20px; background: #4af626; animation: blink 0.8s infinite; vertical-align: middle; margin-left: 5px; }
-        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
-
-        /* PERMANENT COMMAND LIST */
         .command-bar {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            font-size: 14px;
+            gap: 8px;
+            font-size: 13px;
             color: #88ff88;
             justify-content: flex-start;
         }
@@ -262,6 +259,8 @@
             border: 1px solid rgba(74, 246, 38, 0.3);
         }
         .cmd-item span { color: #ffcc00; font-weight: bold; }
+        .cmd-item.extreme { border-color: rgba(255, 68, 68, 0.5); background: rgba(255, 68, 68, 0.1); }
+        .cmd-item.extreme span { color: #ff4444; }
         
         .power-btn {
             position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);
@@ -317,7 +316,7 @@
                     
                     <div class="sidebar">
                         <div class="dashboard" id="dashboard">
-                            <div class="dash-header">MACRO DASHBOARD <span style="float:right; opacity:0.5;">T:0/12</span></div>
+                            <div class="dash-header">MACRO DASHBOARD</div>
                             <div style="opacity: 0.5;">[ SYSTEM OFFLINE ]</div>
                         </div>
                         <div class="context-panel" id="contextPanel">
@@ -330,18 +329,21 @@
                 <div class="footer-controls">
                     <div class="cmd-line">
                         <span class="prompt">PRESIDENT:~$</span>
-                        <input type="text" id="cmd" placeholder="Awaiting boot..." disabled autocomplete="off">
+                        <input type="text" id="cmd" placeholder="Awaiting boot..." disabled autocomplete="off" spellcheck="false">
                     </div>
                     <div class="command-bar" id="commandBar" style="visibility: hidden;">
                         <div class="cmd-item">Raise Rates <span>[rr]</span></div>
                         <div class="cmd-item">Cut Rates <span>[cr]</span></div>
-                        <div class="cmd-item">Increase Spending <span>[is]</span></div>
+                        <div class="cmd-item">Inc. Spending <span>[is]</span></div>
                         <div class="cmd-item">Cut Spending <span>[cs]</span></div>
-                        <div class="cmd-item">Massive Stimulus <span>[ms]</span></div>
+                        <div class="cmd-item">Mass Stimulus <span>[ms]</span></div>
                         <div class="cmd-item">Deregulate <span>[dr]</span></div>
-                        <div class="cmd-item">Tariffs <span>[ta]</span></div>
+                        <div class="cmd-item">Raise Tariffs <span>[ta]</span></div>
+                        <div class="cmd-item">Free Trade <span>[ft]</span></div>
                         <div class="cmd-item">Price Controls <span>[pc]</span></div>
                         <div class="cmd-item">Do Nothing <span>[dn]</span></div>
+                        <div class="cmd-item extreme">Martial Law <span>[ml]</span></div>
+                        <div class="cmd-item extreme">Nuke <span>[nk]</span></div>
                     </div>
                 </div>
             </div>
@@ -354,12 +356,18 @@
             turn: 1, maxTurns: 12, 
             gdp: 2.1, unemployment: 5.1, inflation: 4.8,
             approval: 48, fedCredibility: 80, sp500: 4800,
-            hasTariffs: false, hasPriceControls: false,
+            congress: 55, tariffRate: 5.0,
+            hasPriceControls: false,
             typingSpeed: 60, systemOn: false, soundEnabled: true
         };
 
         // --- DEFINITIONS DICTIONARY ---
         const contextDict = {
+            'election': {
+                title: 'ELECTION COUNTDOWN',
+                def: 'The ultimate accountability mechanism. All economic chickens come home to roost on this date.',
+                hist: 'Voters rarely reward complex, long-term systemic fixes if they are experiencing short-term financial pain at the ballot box.'
+            },
             'gdp': { 
                 title: 'GROSS DOMESTIC PRODUCT', 
                 def: 'The total market value of goods and services. True economic growth stems from productivity and innovation, not merely expanding the money supply.', 
@@ -382,27 +390,80 @@
             },
             'approval': { 
                 title: 'APPROVAL RATING', 
-                def: 'Your political capital. Sound economics often makes for poor politics in the short run, testing executive resolve.', 
+                def: 'Your political capital. Taking necessary short-term economic hits will drop this immediately, but stabilizing the macro-economy recovers it over time.', 
                 hist: 'Presidents frequently pressure the Federal Reserve to artificially juice the economy before an election, sacrificing long-term stability.' 
             },
             'fed': { 
                 title: 'FED CREDIBILITY', 
                 def: 'The market\'s belief that the central bank will act independently to maintain price stability, even when politically unpopular.', 
                 hist: 'Arthur Burns bowed to President Nixon\'s demands for low rates prior to the 1972 election, directly causing the Great Inflation.' 
+            },
+            'congress': {
+                title: 'CONGRESSIONAL APPROVAL',
+                def: 'The legislature\'s willingness to tolerate your administration. Extreme executive overreach or crashing markets will destroy this quickly.',
+                hist: 'If Congressional Approval falls below 15%, impeachment proceedings become a mathematical certainty regardless of partisan lines.'
+            },
+            'tariffs': {
+                title: 'AVERAGE TARIFF RATE',
+                def: 'A direct tax on domestic consumers levied at the border. Raises the cost of imported goods, triggering retaliatory supply shocks.',
+                hist: 'The Smoot-Hawley Tariff Act of 1930 drastically worsened the Great Depression by triggering a catastrophic global trade war.'
             }
         };
 
+        // --- RANDOM EMERGENCIES ---
+        const emergencies = [
+            {
+                triggerReq: () => state.turn > 2 && Math.random() < 0.25,
+                execute: async () => {
+                    await addMessage("GENERAL: SIR! We have an armed insurrection brewing in the capital over the economic conditions. State police are overwhelmed. I strongly advise declaring MARTIAL LAW [ml] to crush these rioters immediately!", 'general');
+                    await addMessage("MILTON: Mr. President, while the General is eager to play soldier, deploying the military into the commercial heart of the country will instantly freeze the supply chain. Panic is terrible for GDP. Do what you must, but understand the economic cost of tanks on Wall Street.", 'milton');
+                    state.sp500 -= 200;
+                }
+            },
+            {
+                triggerReq: () => state.turn > 3 && Math.random() < 0.15,
+                execute: async () => {
+                    await addMessage("GENERAL: SIR! NORAD confirms extraterrestrial vessels have breached atmosphere and are hovering over major manufacturing hubs! This is a hostile invasion! Authorize a preemptive NUKE [nk] strike immediately before they act!", 'general');
+                    await addMessage("MILTON: Mr. President, vaporizing our primary industrial base will indeed solve the immediate unemployment problem—mostly by eliminating the labor force. However, the inflationary effects of instantly deleting 30% of our supply chain will be catastrophic. I advise we let them observe; they might introduce a sounder currency than ours.", 'milton');
+                }
+            },
+            {
+                triggerReq: () => state.turn > 2 && Math.random() < 0.3,
+                execute: async () => {
+                    await addMessage("SYSTEM: MAJOR EXECUTIVE SCANDAL LEAKED TO PRESS. LEGISLATIVE SUPPORT COLLAPSING.", 'danger');
+                    await addMessage("MILTON: Well, Mr. President, it appears your extracurricular activities are catching up with you. Congress is furious. If their approval drops too low, they will impeach. You might want to tread lightly, or throw them some stimulus pork to buy their affection.", 'milton');
+                    state.congress -= 15;
+                    state.approval -= 8;
+                }
+            },
+            {
+                triggerReq: () => state.turn > 2 && Math.random() < 0.2,
+                execute: async () => {
+                    await addMessage("SYSTEM: GLOBAL OIL SHOCK. STRAIT OF HORMUZ BLOCKADED.", 'danger');
+                    await addMessage("GENERAL: The Navy is standing by to forcefully clear the strait. Give the word.", 'general');
+                    await addMessage("MILTON: An energy shock. The textbook response is to let prices rise so demand falls and alternative energy becomes viable. Do not implement price controls on gas, or you will create lines around the block by tomorrow morning.", 'milton');
+                    state.inflation += 2.0;
+                    state.gdp -= 1.0;
+                }
+            }
+        ];
+
         // --- COMMAND DICTIONARY ---
         const commandEffects = {
-            'raise rates': { shortcut: 'rr', effect: () => { state.gdp -= 0.6; state.inflation -= 0.8; state.unemployment += 0.5; state.sp500 -= 300; state.fedCredibility += 5; state.approval -= 2; } },
+            'raise rates': { shortcut: 'rr', effect: () => { state.gdp -= 0.6; state.inflation -= 0.8; state.unemployment += 0.5; state.sp500 -= 300; state.fedCredibility += 5; state.approval -= 3; state.congress += 2; } },
             'cut rates': { shortcut: 'cr', effect: () => { state.gdp += 0.5; state.inflation += 0.7; state.unemployment -= 0.3; state.sp500 += 400; state.fedCredibility -= 6; state.approval += 3; } },
-            'increase spending': { shortcut: 'is', effect: () => { state.gdp += 0.4; state.inflation += 0.5; state.unemployment -= 0.2; state.sp500 += 150; state.approval += 2; } },
-            'cut spending': { shortcut: 'cs', effect: () => { state.gdp -= 0.4; state.inflation -= 0.3; state.unemployment += 0.3; state.sp500 -= 100; state.approval -= 4; } },
-            'massive stimulus': { shortcut: 'ms', effect: () => { state.gdp += 0.8; state.inflation += 1.5; state.unemployment -= 0.6; state.sp500 += 600; state.fedCredibility -= 10; state.approval += 5; } },
-            'deregulate': { shortcut: 'dr', effect: () => { state.gdp += 0.3; state.inflation -= 0.1; state.unemployment -= 0.2; state.sp500 += 200; state.approval += 1; } },
-            'tariffs': { shortcut: 'ta', effect: () => { state.gdp -= 0.5; state.inflation += 0.8; state.sp500 -= 250; state.hasTariffs = true; } },
-            'price controls': { shortcut: 'pc', effect: () => { state.inflation -= 1.5; state.gdp -= 1.2; state.sp500 -= 500; state.unemployment += 0.8; state.hasPriceControls = true; } },
-            'do nothing': { shortcut: 'dn', effect: () => { state.gdp -= 0.1; state.inflation -= 0.2; state.sp500 += 50; } }
+            'increase spending': { shortcut: 'is', effect: () => { state.gdp += 0.4; state.inflation += 0.5; state.unemployment -= 0.2; state.sp500 += 150; state.approval += 2; state.congress += 5; } },
+            'cut spending': { shortcut: 'cs', effect: () => { state.gdp -= 0.4; state.inflation -= 0.3; state.unemployment += 0.3; state.sp500 -= 100; state.approval -= 4; state.congress -= 5; } },
+            'massive stimulus': { shortcut: 'ms', effect: () => { state.gdp += 0.8; state.inflation += 1.5; state.unemployment -= 0.6; state.sp500 += 600; state.fedCredibility -= 10; state.approval += 5; state.congress += 10; } },
+            'deregulate': { shortcut: 'dr', effect: () => { state.gdp += 0.3; state.inflation -= 0.1; state.unemployment -= 0.2; state.sp500 += 200; state.approval += 1; state.congress -= 2; } },
+            'raise tariffs': { shortcut: 'ta', effect: () => { state.tariffRate += 5.0; state.sp500 -= 250; state.congress += 2; } },
+            'free trade': { shortcut: 'ft', effect: () => { state.tariffRate = Math.max(0, state.tariffRate - 5.0); state.sp500 += 150; state.gdp += 0.2; } },
+            'price controls': { shortcut: 'pc', effect: () => { state.inflation -= 1.5; state.gdp -= 1.2; state.sp500 -= 500; state.unemployment += 0.8; state.hasPriceControls = true; state.congress -= 10; } },
+            'do nothing': { shortcut: 'dn', effect: () => { state.gdp -= 0.1; state.inflation -= 0.2; state.sp500 += 50; } },
+            
+            // Extreme Commands
+            'martial law': { shortcut: 'ml', effect: () => { state.gdp -= 2.5; state.unemployment += 3.0; state.approval -= 15; state.congress -= 25; state.sp500 -= 800; } },
+            'nuke': { shortcut: 'nk', effect: () => { state.gdp -= 8.0; state.inflation += 10.0; state.unemployment += 5.0; state.approval += 10; /* rally effect */ state.congress -= 40; state.sp500 -= 2500; } }
         };
 
         const msgArea = document.getElementById('msgArea');
@@ -424,7 +485,6 @@
             }
         }
 
-        // TIGHT KEYBOARD SOUND (Instant feedback)
         function playKeyClick() {
             if (!state.soundEnabled || !audioCtx || !noiseBuffer) return;
             const source = audioCtx.createBufferSource();
@@ -436,6 +496,20 @@
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.015);
             source.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
             source.start(); source.stop(audioCtx.currentTime + 0.02);
+        }
+
+        function playSiren() {
+            if (!state.soundEnabled || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.5);
+            osc.frequency.linearRampToValueAtTime(400, audioCtx.currentTime + 1.0);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.0);
+            osc.start(); osc.stop(audioCtx.currentTime + 1.0);
         }
 
         function focusInput() { if (state.systemOn && !cmdInput.disabled) { initAudio(); cmdInput.focus(); } }
@@ -450,13 +524,14 @@
             msgDiv.className = `msg ${type}`;
             msgArea.appendChild(msgDiv);
             
-            if (type === 'president' || type === 'system') {
+            if (type === 'president' || type === 'system' || type === 'danger') {
                 msgDiv.textContent = text;
                 msgArea.scrollTop = msgArea.scrollHeight;
+                if (type === 'danger') playSiren();
                 return;
             }
             
-            // Typewriter effect only for Milton
+            // Typewriter effect for characters
             let i = 0;
             return new Promise(resolve => {
                 const interval = setInterval(() => {
@@ -476,27 +551,43 @@
             const unempColor = state.unemployment > 6.0 ? '#ff6b6b' : state.unemployment < 4.0 ? '#4af626' : '#fff';
             const infColor = state.inflation > 3.0 ? '#ff6b6b' : state.inflation < 2.0 ? '#4af626' : '#fff';
             const spColor = state.sp500 >= 4800 ? '#4af626' : '#ff6b6b';
+            const congColor = state.congress <= 25 ? '#ff6b6b' : '#fff';
+            const tariffColor = state.tariffRate > 10 ? '#ff6b6b' : '#fff';
+            
+            const turnsLeft = state.maxTurns - state.turn + 1;
+            const electColor = turnsLeft <= 3 ? '#ff6b6b' : '#ffcc00';
             
             dashboard.innerHTML = `
                 <div class="dash-header">MACRO DASHBOARD <span style="float:right; opacity:0.8;">TURN: ${state.turn}/${state.maxTurns}</span></div>
+                <div class="dash-row" style="border-bottom: 1px solid rgba(255, 204, 0, 0.3); padding-bottom: 8px; margin-bottom: 12px;">
+                    <span class="dash-label hover-term" data-term="election">ELECTION IN:</span>
+                    <span class="dash-value" style="color:${electColor}">${turnsLeft} ${turnsLeft === 1 ? 'TURN' : 'TURNS'}</span>
+                </div>
                 <div class="dash-row"><span class="dash-label hover-term" data-term="gdp">GDP GROWTH:</span><span class="dash-value" style="color:${gdpColor}">${state.gdp.toFixed(1)}%</span></div>
                 <div class="dash-row"><span class="dash-label hover-term" data-term="unemployment">UNEMPLOYMENT:</span><span class="dash-value" style="color:${unempColor}">${state.unemployment.toFixed(1)}%</span></div>
                 <div class="dash-row"><span class="dash-label hover-term" data-term="inflation">INFLATION (PCE):</span><span class="dash-value" style="color:${infColor}">${state.inflation.toFixed(1)}%</span></div>
                 <div class="dash-row"><span class="dash-label hover-term" data-term="sp500">S&P 500:</span><span class="dash-value" style="color:${spColor}">${Math.round(state.sp500).toLocaleString()}</span></div>
-                <div class="dash-row"><span class="dash-label hover-term" data-term="approval">APPROVAL RATING:</span><span class="dash-value">${Math.round(state.approval)}%</span></div>
+                
+                <div class="dash-row" style="margin-top:12px; border-top: 1px solid #4af626; padding-top: 8px;">
+                    <span class="dash-label hover-term" data-term="approval">APPROVAL RATING:</span><span class="dash-value">${Math.round(state.approval)}%</span>
+                </div>
+                <div class="dash-row"><span class="dash-label hover-term" data-term="congress">CONGRESS APPROVAL:</span><span class="dash-value" style="color:${congColor}">${Math.round(state.congress)}%</span></div>
                 <div class="dash-row"><span class="dash-label hover-term" data-term="fed">FED CREDIBILITY:</span><span class="dash-value">${Math.round(state.fedCredibility)}%</span></div>
+                <div class="dash-row"><span class="dash-label hover-term" data-term="tariffs">AVG TARIFF RATE:</span><span class="dash-value" style="color:${tariffColor}">${state.tariffRate.toFixed(1)}%</span></div>
             `;
         }
 
         function getMiltonAdvice() {
             let advice = "MILTON: Mr. President, ";
             
-            if (state.hasPriceControls) {
+            if (state.congress <= 25) {
+                advice += "the legislative branch is drafting articles of impeachment as we speak. I suggest you throw them some stimulus pork or reverse your most extreme policies immediately, unless you prefer the private sector.";
+            } else if (state.tariffRate >= 15) {
+                advice += "our tariff rates are suffocating global trade. You are artificially raising prices on our own consumers and inviting retaliatory measures. Free trade [ft] is not a concession, it is an economic necessity.";
+            } else if (state.hasPriceControls) {
                 advice += "price controls never work. You are treating the symptom, not the disease. The market is unable to signal demand, and we are seeing massive shortages. I advise lifting them immediately.";
-            } else if (state.hasTariffs) {
-                advice += "protectionism is taxing our own citizens. Tariffs disrupt the free market and raise prices for consumers. We should remove trade barriers.";
             } else if (state.inflation > 4.0) {
-                advice += `inflation is running hot at ${state.inflation.toFixed(1)}%. Inflation is always and everywhere a monetary phenomenon. We must restrict the money supply by raising rates or cutting federal spending, regardless of the short-term political cost.`;
+                advice += `inflation is running hot at ${state.inflation.toFixed(1)}%. Inflation is always and everywhere a monetary phenomenon. We must restrict the money supply by raising rates or cutting federal spending, regardless of the political cost.`;
             } else if (state.unemployment > 6.5) {
                 advice += `unemployment is high, but the market is clearing out malinvestment. Do not be tempted by massive stimulus packages; injecting artificial liquidity now will only breed a severe inflationary crisis tomorrow.`;
             } else if (state.gdp < 1.0) {
@@ -504,7 +595,7 @@
             } else if (state.fedCredibility < 50) {
                 advice += "the market has lost faith in the Federal Reserve's independence. We must allow them to raise rates to prove we are serious about price stability, even if the S&P suffers.";
             } else {
-                advice += "the economy is relatively stable. The hardest thing for a politician to do is nothing, but letting the free market operate unhindered is exactly what is required right now.";
+                advice += "the economy is structurally sound. The hardest thing for a politician to do is nothing [dn], but letting the free market operate unhindered is exactly what is required right now.";
             }
             
             return advice;
@@ -517,7 +608,7 @@
             
             buildDashboard();
             
-            await addMessage("MILTON: Good morning, Mr. President. I am Milton, your chief economic advisor. My philosophy is simple: free markets, stable money, and limited government intervention. I will analyze the metrics and advise you, but the policy decisions are yours.", 'milton');
+            await addMessage("MILTON: Good morning, Mr. President. I am Milton, your chief economic advisor. My philosophy is simple: free markets, stable money, and limited government intervention. I will analyze the metrics and advise you. The policy decisions, however, are yours.", 'milton');
             await new Promise(r => setTimeout(r, 500));
             await addMessage(getMiltonAdvice(), 'milton');
             
@@ -532,6 +623,24 @@
             document.getElementById('powerBtn').style.pointerEvents = 'none';
             initAudio();
             await bootSequence();
+        }
+
+        async function runTurnEvents() {
+            // Check Impeachment
+            if (state.congress <= 15) {
+                await addMessage("SYSTEM: ARTICLES OF IMPEACHMENT PASSED BOTH HOUSES. EXECUTIVE REMOVED FROM OFFICE.", 'danger');
+                await addMessage("MILTON: Well, Mr. President, it seems the political market has cleared you from the ledger. We are finished here.", 'milton');
+                return false; // end game
+            }
+
+            // Check Random Emergencies
+            for (let event of emergencies) {
+                if (event.triggerReq()) {
+                    await event.execute();
+                    break; // Only one emergency per turn
+                }
+            }
+            return true;
         }
 
         async function processCommand(cmdInputText) {
@@ -558,23 +667,57 @@
             await addMessage(`PRESIDENT: Execute directive -> ${resolvedName}`, 'president');
             cmdInput.value = '';
 
-            // Apply logic
+            // Extreme Command Custom Responses
+            if (resolvedName === 'NUKE') {
+                await addMessage("GENERAL: THERMONUCLEAR LAUNCH CONFIRMED! TARGETS ACQUIRED. GOD BLESS AMERICA!", 'general');
+                await addMessage("MILTON: I suppose atomic fire is one way to stimulate domestic manufacturing... rebuilding the ashes.", 'milton');
+            } else if (resolvedName === 'MARTIAL LAW') {
+                await addMessage("GENERAL: TROOPS DEPLOYED. CURFEWS ENFORCED. STREETS SECURED.", 'general');
+            }
+
+            // Apply immediate political/economic logic
             effectData.effect();
             
             if (resolvedName !== 'PRICE CONTROLS') state.hasPriceControls = false;
-            if (resolvedName !== 'TARIFFS') state.hasTariffs = false;
+
+            // Tariff Drag Logic (compounds every turn)
+            if (state.tariffRate > 0) {
+                let tariffPenalty = state.tariffRate * 0.05;
+                state.inflation += tariffPenalty;
+                state.gdp -= (tariffPenalty * 0.5);
+            }
+
+            // Delayed Gratification / Structural Approval Drift
+            let structuralDrift = 0;
+            
+            if (state.inflation > 3.0) structuralDrift -= (state.inflation - 3.0) * 1.5;
+            if (state.unemployment > 5.0) structuralDrift -= (state.unemployment - 5.0) * 1.5;
+            if (state.gdp < 1.0) structuralDrift -= 2;
+            
+            if (state.inflation <= 2.5) structuralDrift += 2.5;
+            if (state.unemployment <= 4.5) structuralDrift += 2.0;
+            if (state.gdp >= 3.0) structuralDrift += 2.0;
+            if (state.sp500 >= 5200) structuralDrift += 1.5;
+            
+            // Extreme command drift
+            if (state.approval > 50 && resolvedName === 'NUKE') structuralDrift -= 15; // Rally wears off quickly
+
+            state.approval += structuralDrift;
 
             // Clamps
-            state.gdp = Math.max(-8, state.gdp);
-            state.unemployment = Math.min(25, Math.max(2, state.unemployment));
+            state.gdp = Math.max(-15, state.gdp);
+            state.unemployment = Math.min(35, Math.max(2, state.unemployment));
             state.inflation = Math.max(-3, state.inflation);
             state.approval = Math.min(100, Math.max(0, state.approval));
+            state.congress = Math.min(100, Math.max(0, state.congress));
             state.fedCredibility = Math.min(100, Math.max(0, state.fedCredibility));
-            state.sp500 = Math.max(1000, state.sp500);
+            state.sp500 = Math.max(500, state.sp500);
 
-            // Natural progression drift
-            if (state.inflation > 3) state.approval -= (state.inflation - 3);
-            if (state.unemployment > 5) state.approval -= (state.unemployment - 5);
+            if (structuralDrift >= 4) {
+                await addMessage(`SYSTEM: Economic stabilization recognized by electorate. Approval trending upward (+${structuralDrift.toFixed(1)}%).`, 'system');
+            } else if (structuralDrift <= -4) {
+                await addMessage(`SYSTEM: Macroeconomic distress hurting incumbent. Approval trending downward (${structuralDrift.toFixed(1)}%).`, 'danger');
+            }
             
             state.turn++;
             const qtr = Math.ceil(state.turn/2);
@@ -583,11 +726,22 @@
 
             if (state.turn > state.maxTurns) {
                 await endGame();
-            } else {
+                return;
+            }
+
+            await new Promise(r => setTimeout(r, 600));
+            
+            // Check events and impeachment
+            const gameContinues = await runTurnEvents();
+            buildDashboard(); // Update dashboard in case event changed stats
+            
+            if (gameContinues) {
                 await new Promise(r => setTimeout(r, 600));
                 await addMessage(getMiltonAdvice(), 'milton');
                 cmdInput.disabled = false;
                 focusInput();
+            } else {
+                cmdInput.placeholder = "SIMULATION CONCLUDED.";
             }
         }
 
@@ -596,7 +750,7 @@
             if (state.inflation > 5 || state.unemployment > 8) {
                 result = "MILTON: Mr. President, your term is over. The stagflationary crisis has cost you the election. We ignored the monetary fundamentals, and the market extracted a heavy toll.";
             } else if (state.approval < 40) {
-                result = "MILTON: Mr. President, the economics were perhaps sound, but the political reality is harsh. You have lost the re-election. However, you may have set up the next administration for success.";
+                result = "MILTON: Mr. President, the economics were perhaps sound, but the political reality is harsh. You have lost the re-election. However, you took the necessary short-term hits and set up the next administration for structural success. A thankless job.";
             } else {
                 result = "MILTON: Congratulations on your re-election, Mr. President. We maintained relatively free markets and stable money. A rare victory for structural restraint.";
             }
@@ -617,17 +771,10 @@
                 }
             });
             
-            cmdInput.addEventListener('focus', () => {
-                if (!document.getElementById('cursorIndicator')) {
-                    const cursor = document.createElement('div');
-                    cursor.className = 'typing-cursor'; cursor.id = 'cursorIndicator';
-                    document.querySelector('.prompt').appendChild(cursor);
-                }
-            });
-            
             cmdInput.addEventListener('blur', () => {
-                const cursor = document.getElementById('cursorIndicator');
-                if (cursor) cursor.remove();
+                if(state.systemOn && !cmdInput.disabled) {
+                    setTimeout(() => cmdInput.focus(), 10); 
+                }
             });
 
             // Hover definitions
