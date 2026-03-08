@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESIDENTIAL TERMINAL - MILTON v8.5</title>
+    <title>PRESIDENTIAL TERMINAL - MILTON v8.6</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         
         :root {
-            --phosphor: #ffb000; /* Deep Amber */
-            --milton: #e8e8e8;   /* Phosphor White for clarity */
+            --phosphor: #ffb000; 
+            --milton: #e8e8e8;   
             --bg: #0a0600;
             --dim: rgba(255, 176, 0, 0.3);
             --danger: #ff3300;
@@ -52,16 +52,16 @@
             position: relative;
             overflow: hidden;
             display: flex;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.6); /* Lightened inset shadow */
             opacity: 0; 
             transition: opacity 0.1s, background-color 0.5s;
         }
         .crt-screen.on { opacity: 1; }
-        .crt-screen.war-mode { background: #1a0500; } /* Deep red tint during war */
+        .crt-screen.war-mode { background: #1a0500; } 
 
         .scanlines {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15)); /* Lightened scanlines */
             background-size: 100% 4px;
             pointer-events: none;
             z-index: 50;
@@ -69,7 +69,7 @@
         
         .glow {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle, rgba(255,176,0,0.02) 0%, rgba(0,0,0,0.4) 100%);
+            background: radial-gradient(circle, rgba(255,176,0,0.02) 0%, rgba(0,0,0,0.25) 100%); /* Lightened vignette significantly */
             pointer-events: none;
             z-index: 49;
         }
@@ -106,8 +106,7 @@
         .block { margin-bottom: 18px; line-height: 1.3; white-space: pre-wrap; text-shadow: 0 0 2px var(--phosphor); }
         .block.system { opacity: 0.8; }
         .block.chief { font-weight: bold; color: var(--phosphor); border-left: 3px solid var(--phosphor); padding-left: 15px; }
-        /* Milton is now stark white to cut through the noise */
-        .block.milton { color: var(--milton); font-style: italic; border-left: 3px solid var(--milton); padding-left: 15px; text-shadow: 0 0 3px var(--milton); }
+        .block.milton { color: var(--milton); font-style: italic; border-left: 3px solid var(--milton); padding-left: 15px; text-shadow: 0 0 2px var(--milton); }
         .block.danger { color: var(--danger); text-shadow: 0 0 3px var(--danger); font-weight: bold; }
         .block.general { color: var(--war); text-shadow: 0 0 3px var(--war); border-left: 3px solid var(--war); padding-left: 15px; font-weight: bold; }
         .block.user-echo { font-weight: bold; opacity: 0.9; }
@@ -118,15 +117,16 @@
             margin-top: auto;
             flex-shrink: 0;
             display: none; 
+            font-size: 26px; /* Increased typing size */
         }
 
-        .prompt { margin-right: 10px; text-shadow: 0 0 2px var(--phosphor); font-weight: bold; }
-        #visualInput { white-space: pre; text-transform: lowercase; text-shadow: 0 0 2px var(--phosphor); }
+        .prompt { margin-right: 10px; text-shadow: 0 0 1px var(--phosphor); font-weight: bold; } /* Sharpened prompt */
+        #visualInput { white-space: pre; text-transform: lowercase; text-shadow: 0 0 1px var(--phosphor); } /* Sharpened input */
 
         .cursor {
-            display: inline-block; width: 14px; height: 24px;
+            display: inline-block; width: 14px; height: 26px;
             background: var(--phosphor); animation: blink 1s step-end infinite;
-            margin-left: 2px; vertical-align: text-bottom; box-shadow: 0 0 3px var(--phosphor);
+            margin-left: 2px; vertical-align: text-bottom;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
@@ -156,10 +156,10 @@
 
         .metric-row { display: flex; justify-content: space-between; margin-bottom: 10px; cursor: help; }
         .metric-row:hover { background: var(--dim); }
-        .metric-label { opacity: 0.8; text-shadow: 0 0 2px var(--phosphor); }
-        .metric-value { font-weight: bold; text-shadow: 0 0 2px var(--phosphor); }
-        .metric-value.warning { color: var(--danger); text-shadow: 0 0 3px var(--danger); }
-        .metric-value.good { color: #4af626; text-shadow: 0 0 3px #4af626; }
+        .metric-label { opacity: 0.8; text-shadow: 0 0 1px var(--phosphor); }
+        .metric-value { font-weight: bold; text-shadow: 0 0 1px var(--phosphor); }
+        .metric-value.warning { color: var(--danger); text-shadow: 0 0 2px var(--danger); }
+        .metric-value.good { color: #4af626; text-shadow: 0 0 2px #4af626; }
 
         .dict-box {
             flex-grow: 1; border: 1px solid var(--dim); padding: 20px;
@@ -170,19 +170,19 @@
         .context-title {
             font-weight: bold; font-size: 22px; margin-bottom: 10px;
             border-bottom: 1px solid var(--phosphor); padding-bottom: 8px;
-            text-shadow: 0 0 2px var(--phosphor);
+            text-shadow: 0 0 1px var(--phosphor);
         }
         .context-def { margin-bottom: 12px; line-height: 1.5; text-shadow: 0 0 1px var(--phosphor); }
         .context-hist { font-style: italic; opacity: 0.9; line-height: 1.5; border-left: 2px solid var(--phosphor); padding-left: 10px; text-shadow: 0 0 1px var(--phosphor); color: var(--milton); }
 
         .cmd-list {
-            margin-top: auto; font-size: 20px; opacity: 0.9;
-            border-top: 2px dashed var(--dim); padding-top: 15px; text-shadow: 0 0 2px var(--phosphor);
+            margin-top: auto; font-size: 20px; /* Increased font size for commands */
+            border-top: 2px dashed var(--dim); padding-top: 15px; text-shadow: none; /* Removed heavy bloom */
         }
         .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .cmd-item { font-size: 18px; }
-        .cmd-item.highlight { border: 1px solid var(--milton); color: var(--milton); padding: 4px 5px; border-radius: 3px; text-shadow: 0 0 3px var(--milton);}
-        .cmd-item.war-highlight { border: 1px solid var(--war); color: var(--war); }
+        .cmd-item { font-size: 19px; opacity: 0.9; }
+        .cmd-item.highlight { border: 1px solid var(--milton); color: var(--milton); padding: 4px 5px; border-radius: 3px; text-shadow: none;}
+        .cmd-item.war-highlight { border: 1px solid var(--war); color: var(--war); text-shadow: none;}
 
         .hardware-controls { position: absolute; bottom: 25px; right: 35px; display: flex; gap: 20px; z-index: 100; }
         .hw-btn {
@@ -231,16 +231,14 @@
                 </div>
 
                 <div class="dashboard-area" id="dashboardArea" style="visibility:hidden;">
-                    <div class="panel" id="telemetryPanel">
-                        </div>
+                    <div class="panel" id="telemetryPanel"></div>
 
                     <div class="dict-box" id="dictBox">
                         <div class="context-title">INTELLIGENCE</div>
                         <div class="context-def">Hover over metrics to access structural definitions and behavioral precedents.</div>
                     </div>
 
-                    <div class="cmd-list" id="cmdListArea">
-                        </div>
+                    <div class="cmd-list" id="cmdListArea"></div>
                 </div>
 
             </div>
@@ -251,12 +249,11 @@
         // --- CORE STATE ---
         const state = {
             isOn: false, soundEnabled: true,
-            mode: 'macro', // 'macro' or 'war'
+            mode: 'macro',
             turn: 1, maxTurns: 12, 
             gdp: 2.1, unemployment: 5.1, inflation: 4.8,
             approval: 48, fedCredibility: 80, sp500: 4800, congress: 55, tariffRate: 5.0,
             hasPriceControls: false, currentCrisis: '', miltonAskedThisTurn: false,
-            // War State
             war: { enemyStrength: 100, tension: 50, casualties: 0, expenditure: 0, active: false }
         };
 
@@ -277,12 +274,12 @@
             'sp500': { title: "S&P 500 INDEX", def: "Equity valuations. Highly addicted to cheap debt.", hist: "Wall Street routinely threatens crash scenarios to force the Fed to cut rates." },
             'approval': { title: "APPROVAL RATING", def: "Political capital. Dropping below 40% makes you a lame duck.", hist: "Doing the right economic thing usually costs you re-election." },
             'congress': { title: "CONGRESSIONAL APP", def: "Legislative tolerance.", hist: "Falls below 15% guarantee impeachment." },
+            'fed': { title: "FED CREDIBILITY", def: "Market belief that the central bank will act independently to maintain price stability.", hist: "Arthur Burns bowed to President Nixon's demands for low rates prior to the 1972 election." },
             'tariffs': { title: "AVERAGE TARIFF RATE", def: "A direct tax on domestic consumers.", hist: "Smoot-Hawley (1930) worsened the Great Depression by killing global trade." },
-            // War Dictionary
             'strength': { title: "ENEMY STRENGTH", def: "Remaining combat capacity of the hostile force.", hist: "Reaching 0% signifies theater victory." },
             'tension': { title: "THEATER TENSION", def: "The likelihood of a global escalation or nuclear exchange.", hist: "Reaching 100% triggers Mutually Assured Destruction." },
             'casualties': { title: "CASUALTIES", def: "American lives lost. Drags heavily on domestic approval.", hist: "Prolonged kinetic engagements destroy incumbent administrations." },
-            'expenditure': { title: "WAR EXPENDITURE", def: "Billions of dollars burned. Will hit the macro economy as severe inflation and GDP drag upon return.", hist: "War is the ultimate destroyer of economic capital." }
+            'expenditure': { title: "WAR EXPENDITURE", def: "Billions of dollars burned. Will hit the macro economy upon return.", hist: "War is the ultimate destroyer of economic capital." }
         };
 
         // --- COMMANDS ---
@@ -313,7 +310,6 @@
             'wd': { name: 'WITHDRAW', effect: () => { endWar(false); } }
         };
 
-        // --- CRISIS SCENARIOS & ADVISOR LOGIC ---
         const crisisProfiles = {
             'inflation': {
                 chief: "CHIEF OF STAFF: Mr. President, inflation is killing us in the polls. The press is out for blood. I strongly advise we implement PRICE CONTROLS [pc] to stop corporate gouging immediately!",
@@ -483,6 +479,7 @@
                 print("--------------------------------------------------\n");
                 
                 DOM.dash.style.visibility = 'visible';
+                updateDashboard();
                 runTurn();
             }, 800);
         }
@@ -524,7 +521,6 @@
                 state.approval -= 20;
             }
 
-            // Economic consequences hit the macro board immediately
             print(`MILTON: The war is over. Time to pay the bill. Total expenditure: $${state.war.expenditure} Billion. This deficit spending will now hit the macro economy.`, 'milton');
             let infHit = (state.war.expenditure / 10);
             let gdpHit = (state.war.expenditure / 20);
@@ -537,7 +533,7 @@
         }
 
         function determineCrisis() {
-            if (state.turn === 4) return 'geopolitical'; // Hardcode Turn 4 as war trigger
+            if (state.turn === 4) return 'geopolitical'; 
             if (state.inflation > 4.5) return 'inflation';
             if (state.unemployment > 6.0) return 'unemployment';
             if (state.sp500 < 4500) return 'market_crash';
@@ -546,7 +542,7 @@
         }
 
         function runTurn() {
-            if (state.mode === 'war') return; // Handled dynamically
+            if (state.mode === 'war') return; 
             
             state.miltonAskedThisTurn = false;
             state.currentCrisis = determineCrisis();
@@ -571,7 +567,6 @@
             DOM.cmd.value = ''; DOM.visInput.textContent = '';
             if (!val) return;
 
-            // --- ASK MILTON LOGIC ---
             if (val === 'am' || val === 'ask milton') {
                 if (state.mode === 'war') {
                     print(`COMMAND:~$ ASK MILTON`, 'user-echo');
@@ -590,7 +585,6 @@
                 }
             }
 
-            // Determine Command Dictionary based on Mode
             let dict = state.mode === 'war' ? warCommands : macroCommands;
             let cmdObj = dict[val];
             
@@ -610,16 +604,13 @@
             DOM.cmd.disabled = true;
             print(`${state.mode === 'war' ? 'COMMAND:~$' : 'POTUS:~$'} EXECUTE: ${cmdObj.name}`, 'user-echo');
             
-            // Execute Effect
             cmdObj.effect();
             
-            // --- WAR LOOP RESOLUTION ---
             if (state.mode === 'war') {
                 if (val !== 'wd') {
-                    // Enemy retaliation
                     if (state.war.enemyStrength > 0) {
                         state.war.casualties += Math.floor(Math.random() * 20);
-                        state.approval -= 1; // slow bleed
+                        state.approval -= 1; 
                     }
                     updateDashboard();
 
@@ -652,7 +643,6 @@
                 return;
             }
 
-            // --- MACRO LOOP RESOLUTION ---
             if (val !== 'pc') state.hasPriceControls = false;
 
             if (state.tariffRate > 0) {
@@ -715,7 +705,8 @@
             }
         }
 
-        // --- EVENTS ---
+        // --- GLOBAL EVENT DELEGATION ---
+        
         DOM.cmd.addEventListener('input', (e) => { DOM.visInput.textContent = e.target.value.toLowerCase(); });
         DOM.cmd.addEventListener('keydown', (e) => {
             if (e.key.length === 1 || e.key === 'Backspace') playClick();
@@ -725,23 +716,27 @@
             if (state.isOn && !DOM.cmd.disabled) setTimeout(() => DOM.cmd.focus(), 10);
         });
 
-        document.querySelectorAll('.hover-term').forEach(el => {
-            el.addEventListener('mouseover', (e) => {
-                const data = contextDict[e.target.dataset.term];
-                if(data) {
-                    DOM.dict.innerHTML = `
-                        <div class="context-title">${data.title}</div>
-                        <div class="context-def">${data.def}</div>
-                        <div class="context-hist">PRECEDENT: ${data.hist}</div>
-                    `;
-                }
-            });
-            el.addEventListener('mouseout', () => {
+        // Use global event delegation to fix the dashboard hover bug
+        document.addEventListener('mouseover', (e) => {
+            const target = e.target.closest('.hover-term');
+            if (!target || !state.isOn) return;
+            const data = contextDict[target.getAttribute('data-term')];
+            if(data) {
                 DOM.dict.innerHTML = `
-                    <div class="context-title">ECONOMIC INTELLIGENCE</div>
-                    <div class="context-def">Hover over metrics to access structural definitions and behavioral precedents.</div>
+                    <div class="context-title">${data.title}</div>
+                    <div class="context-def">${data.def}</div>
+                    <div class="context-hist">PRECEDENT: ${data.hist}</div>
                 `;
-            });
+            }
+        });
+        
+        document.addEventListener('mouseout', (e) => {
+            const target = e.target.closest('.hover-term');
+            if (!target || !state.isOn) return;
+            DOM.dict.innerHTML = `
+                <div class="context-title">ECONOMIC INTELLIGENCE</div>
+                <div class="context-def">Hover over metrics to access structural definitions and behavioral precedents.</div>
+            `;
         });
 
     </script>
