@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESIDENTIAL TERMINAL - MILTON v10.0</title>
+    <title>PRESIDENTIAL TERMINAL - MILTON v11.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         
@@ -15,7 +15,7 @@
             --danger: #ff3300;
             --good: #4af626;
             --war: #ff4444;
-            --dark: #b366ff; /* Purple for PsyOps/Dark Ops */
+            --dark: #b366ff; 
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -44,13 +44,13 @@
 
         .crt-screen {
             background: var(--bg); flex-grow: 1; border-radius: 8px;
-            position: relative; overflow: hidden; display: flex;
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
             opacity: 0; transition: opacity 0.1s, background-color 0.5s;
         }
         .crt-screen.on { opacity: 1; }
         .crt-screen.war-mode { background: #1a0500; } 
-        .crt-screen.dark-mode { background: #0d001a; } /* Deep purple tint */
+        .crt-screen.dark-mode { background: #0d001a; } 
 
         .scanlines {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -64,15 +64,39 @@
             pointer-events: none; z-index: 49;
         }
 
+        /* --- NEWS TICKER --- */
+        .ticker-bar {
+            display: flex; background: rgba(255, 176, 0, 0.08);
+            border-bottom: 2px solid var(--dim); height: 35px;
+            align-items: center; flex-shrink: 0; z-index: 20; position: relative;
+        }
+        .ticker-label {
+            background: var(--phosphor); color: #000; font-weight: bold;
+            padding: 0 15px; height: 100%; display: flex; align-items: center;
+            z-index: 21; box-shadow: 2px 0 10px rgba(0,0,0,0.8);
+        }
+        .ticker-viewport {
+            flex-grow: 1; overflow: hidden; position: relative; height: 100%;
+        }
+        .ticker-scroll {
+            position: absolute; white-space: nowrap; line-height: 35px;
+            animation: scroll 30s linear infinite; text-shadow: 0 0 2px var(--phosphor);
+            font-size: 20px;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* --- LAYOUT GRID --- */
         .system-grid {
             display: grid; grid-template-columns: 1fr 430px; 
-            width: 100%; height: 100%; position: relative;
-            z-index: 10; overflow: hidden; 
+            flex-grow: 1; position: relative; z-index: 10; overflow: hidden; 
         }
 
         .terminal-area {
             display: flex; flex-direction: column;
-            padding: 25px 30px 10px 30px; height: 100%;
+            padding: 20px 30px 10px 30px; height: 100%;
             border-right: 2px solid var(--dim); cursor: text; overflow: hidden;
         }
 
@@ -126,7 +150,6 @@
             padding-bottom: 5px; margin-bottom: 8px; letter-spacing: 2px; font-weight: bold;
         }
 
-        /* --- NEW COLUMNAR METRIC GRID --- */
         .metric-header {
             display: grid; grid-template-columns: 1fr 80px 80px;
             font-size: 16px; opacity: 0.6; margin-bottom: 5px;
@@ -197,14 +220,21 @@
     <div class="hardware-bezel">
         <div class="crt-screen" id="screen">
             <div class="scanlines"></div><div class="glow"></div>
+            
+            <div class="ticker-bar" id="tickerBar" style="visibility:hidden;">
+                <div class="ticker-label">NEWSWIRE</div>
+                <div class="ticker-viewport">
+                    <div class="ticker-scroll" id="tickerContent">AWAITING SYSTEM BOOT...</div>
+                </div>
+            </div>
+
             <div class="system-grid">
-                
                 <div class="terminal-area" onclick="focusTerminal()">
                     <div class="log-output" id="logOutput"></div>
                     <div class="input-line" id="inputLine">
                         <span class="prompt" id="promptText">POTUS:~$</span>
                         <span id="visualInput"></span><div class="cursor" id="cursorIndicator"></div>
-                        <input type="text" id="cmd" autocomplete="off" spellcheck="false" maxlength="50">
+                        <input type="text" id="cmd" autocomplete="off" spellcheck="false" maxlength="60">
                     </div>
                 </div>
 
@@ -216,7 +246,6 @@
                     </div>
                     <div class="cmd-list" id="cmdListArea"></div>
                 </div>
-
             </div>
         </div>
 
@@ -234,12 +263,13 @@
         // --- CORE STATE ---
         const state = {
             isOn: false, soundEnabled: true,
-            mode: 'macro', // 'macro', 'war', 'dark'
-            turn: 1, maxTurns: 12, monthsToElection: 48,
+            mode: 'macro', turn: 1, maxTurns: 12, monthsToElection: 48,
             gdp: 2.1, unemployment: 5.1, inflation: 4.8, approval: 48, fedCredibility: 80, sp500: 4800, congress: 55, tariffRate: 5.0,
             hasPriceControls: false, currentCrisis: '', miltonAskedThisTurn: false,
             war: { enemyStrength: 100, tension: 50, casualties: 0, expenditure: 0 },
-            dark: { narrative: 45, compliance: 50, paranoia: 25, trust: 75 }
+            dark: { narrative: 45, compliance: 50, paranoia: 25, trust: 75 },
+            newsQueue: [],
+            futureNews: [] // Array of { turn: number, msg: string }
         };
 
         const DOM = {
@@ -247,7 +277,8 @@
             log: document.getElementById('logOutput'), inputLine: document.getElementById('inputLine'), cmd: document.getElementById('cmd'),
             visInput: document.getElementById('visualInput'), dash: document.getElementById('dashboardArea'),
             telemetry: document.getElementById('telemetryPanel'), cmdList: document.getElementById('cmdListArea'),
-            dict: document.getElementById('dictBox'), prompt: document.getElementById('promptText')
+            dict: document.getElementById('dictBox'), prompt: document.getElementById('promptText'),
+            tickerBar: document.getElementById('tickerBar'), tickerContent: document.getElementById('tickerContent')
         };
 
         // --- DICTIONARY ---
@@ -261,12 +292,10 @@
             'congress': { title: "CONGRESSIONAL APP", def: "Legislative tolerance.", hist: "If this drops below 15%, impeachment proceedings become a mathematical certainty." },
             'fed': { title: "FED CREDIBILITY", def: "The market's belief that the central bank will maintain price stability over political demands.", hist: "Arthur Burns capitulated to President Nixon's demands in 1972, sparking a decade of stagflation." },
             'tariffs': { title: "AVERAGE TARIFF RATE", def: "A direct tax levied on your own domestic consumers under the guise of punishing foreigners.", hist: "The Smoot-Hawley Tariff Act of 1930 drastically worsened the Great Depression." },
-            // War Dictionary
             'strength': { title: "ENEMY STRENGTH", def: "Remaining combat capacity of the hostile force.", hist: "Reaching 0% signifies theater victory." },
             'tension': { title: "THEATER TENSION", def: "The likelihood of a global nuclear exchange.", hist: "Reaching 100% triggers Mutually Assured Destruction." },
             'casualties': { title: "CASUALTIES", def: "American lives lost. Drags heavily on domestic approval.", hist: "Prolonged kinetic engagements reliably destroy incumbent administrations." },
             'expenditure': { title: "WAR EXPENDITURE", def: "Billions burned in the theater. Hits the macro economy upon return.", hist: "War is the ultimate destroyer of economic capital." },
-            // Dark Ops Dictionary
             'narrative': { title: "NARRATIVE CONTROL", def: "Percentage of the population accepting the state-sanctioned reality.", hist: "Requires constant algorithmic and financial expenditure to maintain against the natural entropy of truth." },
             'compliance': { title: "PRESS COMPLIANCE", def: "Media willingness to repeat executive talking points without adversarial friction.", hist: "Operation Mockingbird demonstrated the utility of embedded assets in editorial boards." },
             'paranoia': { title: "PUBLIC PARANOIA", def: "Societal fracture and conspiracy adoption.", hist: "When the official narrative diverges too far from observed reality, institutional collapse follows. (>80% is critical)" },
@@ -275,40 +304,39 @@
 
         // --- COMMANDS ---
         const macroCommands = {
-            'rr': { name: 'RAISE RATES', effect: () => { state.gdp-=0.6; state.inflation-=0.8; state.unemployment+=0.5; state.sp500-=300; state.fedCredibility+=5; state.approval-=3; state.congress+=2; } },
-            'cr': { name: 'CUT RATES', effect: () => { state.gdp+=0.5; state.inflation+=0.7; state.unemployment-=0.3; state.sp500+=400; state.fedCredibility-=6; state.approval+=3; } },
-            'is': { name: 'INC SPENDING', effect: () => { state.gdp+=0.4; state.inflation+=0.5; state.unemployment-=0.2; state.sp500+=150; state.approval+=2; state.congress+=5; } },
-            'cs': { name: 'CUT SPENDING', effect: () => { state.gdp-=0.4; state.inflation-=0.3; state.unemployment+=0.3; state.sp500-=100; state.approval-=4; state.congress-=5; } },
-            'ms': { name: 'STIMULUS', effect: () => { state.gdp+=0.8; state.inflation+=1.5; state.unemployment-=0.6; state.sp500+=600; state.fedCredibility-=10; state.approval+=5; state.congress+=10; } },
-            'dr': { name: 'DEREGULATE', effect: () => { state.gdp+=0.3; state.inflation-=0.1; state.unemployment-=0.2; state.sp500+=200; state.approval+=1; state.congress-=2; } },
-            'ta': { name: 'RAISE TARIFFS', effect: () => { state.tariffRate+=5.0; state.sp500-=250; state.congress+=2; } },
-            'ft': { name: 'FREE TRADE', effect: () => { state.tariffRate=Math.max(0, state.tariffRate-5.0); state.sp500+=150; state.gdp+=0.2; } },
-            'pc': { name: 'PRICE CONTROLS', effect: () => { state.inflation-=1.5; state.gdp-=1.2; state.sp500-=500; state.unemployment+=0.8; state.hasPriceControls=true; state.congress-=10; } },
-            'dn': { name: 'DO NOTHING', effect: () => { state.gdp-=0.1; state.inflation-=0.2; state.sp500+=50; } },
-            'ng': { name: 'NEGOTIATE', effect: () => { state.sp500+=400; state.inflation-=1.0; state.approval-=5; state.congress-=8; } },
-            'dm': { name: 'DEPLOY MILITARY', effect: () => { triggerWarMode(); } },
-            'do': { name: 'DARK OPS', effect: () => { triggerDarkMode(); } }
+            'rr': { name: 'RAISE RATES', effect: () => { state.gdp-=0.6; state.inflation-=0.8; state.unemployment+=0.5; state.sp500-=300; state.fedCredibility+=5; state.approval-=3; state.congress+=2; queueNews("[FED WATCH] Chairman announces aggressive rate hike.", 0); queueNews("[HOUSING] Mortgage applications plummet as borrowing costs soar.", 2); } },
+            'cr': { name: 'CUT RATES', effect: () => { state.gdp+=0.5; state.inflation+=0.7; state.unemployment-=0.3; state.sp500+=400; state.fedCredibility-=6; state.approval+=3; queueNews("[MARKETS] Fed slashes rates. Easy money returns.", 0); queueNews("[ECONOMY] Asset bubbles expanding rapidly amid cheap liquidity.", 2); } },
+            'is': { name: 'INC SPENDING', effect: () => { state.gdp+=0.4; state.inflation+=0.5; state.unemployment-=0.2; state.sp500+=150; state.approval+=2; state.congress+=5; queueNews("[GOV] Massive spending bill signed into law.", 0); queueNews("[TREASURY] National deficit swells; bond yields rise.", 2); } },
+            'cs': { name: 'CUT SPENDING', effect: () => { state.gdp-=0.4; state.inflation-=0.3; state.unemployment+=0.3; state.sp500-=100; state.approval-=4; state.congress-=5; queueNews("[POLICY] White House implements severe austerity measures.", 0); queueNews("[DOMESTIC] Public sector layoffs trigger widespread protests.", 2); } },
+            'ms': { name: 'STIMULUS', effect: () => { state.gdp+=0.8; state.inflation+=1.5; state.unemployment-=0.6; state.sp500+=600; state.fedCredibility-=10; state.approval+=5; state.congress+=10; queueNews("[BREAKING] Trillions authorized in emergency relief package.", 0); queueNews("[INFLATION] 'Transitory' narrative collapses as CPI surges.", 2); } },
+            'dr': { name: 'DEREGULATE', effect: () => { state.gdp+=0.3; state.inflation-=0.1; state.unemployment-=0.2; state.sp500+=200; state.approval+=1; state.congress-=2; queueNews("[BIZ] Sweeping deregulation enacted across energy and finance sectors.", 0); } },
+            'ta': { name: 'RAISE TARIFFS', effect: () => { state.tariffRate+=5.0; state.sp500-=250; state.congress+=2; queueNews("[TRADE] White House enacts sweeping tariffs on imports.", 0); queueNews("[GLOBAL] Trading partners announce retaliatory levies. Port traffic stalls.", 2); queueNews("[CONSUMER] Cost of electronics and raw materials surges.", 3); } },
+            'ft': { name: 'FREE TRADE', effect: () => { state.tariffRate=Math.max(0, state.tariffRate-5.0); state.sp500+=150; state.gdp+=0.2; queueNews("[TRADE] Tariffs slashed. Borders open to foreign goods.", 0); } },
+            'pc': { name: 'PRICE CONTROLS', effect: () => { state.inflation-=1.5; state.gdp-=1.2; state.sp500-=500; state.unemployment+=0.8; state.hasPriceControls=true; state.congress-=10; queueNews("[POLICY] Executive order freezes consumer prices nationwide.", 0); queueNews("[MAIN STREET] Empty shelves reported. Black market premiums reach 300%.", 2); } },
+            'dn': { name: 'DO NOTHING', effect: () => { state.gdp-=0.1; state.inflation-=0.2; state.sp500+=50; queueNews("[CAPITAL] Administration stays the course. Markets digest inaction.", 0); } },
+            'ng': { name: 'NEGOTIATE', effect: () => { state.sp500+=400; state.inflation-=1.0; state.approval-=5; state.congress-=8; queueNews("[GLOBAL] Diplomatic settlement reached. Kinetic action avoided.", 0); queueNews("[POLITICS] Critics slam administration for projecting weakness abroad.", 1); } },
+            'dm': { name: 'DEPLOY MILITARY', effect: () => { triggerWarMode(); queueNews("[BREAKING] KINETIC ACTION AUTHORIZED. MILITARY DEPLOYED.", 0); } },
+            'do': { name: 'DARK OPS', effect: () => { triggerDarkMode(); queueNews("[MEDIA] Sudden shift in editorial narratives noticed across major networks.", 0); } }
         };
 
         const warCommands = {
-            'as': { name: 'AIRSTRIKE', effect: () => { state.war.enemyStrength-=20; state.war.expenditure+=15; state.war.tension+=10; } },
-            'bd': { name: 'BLOCKADE', effect: () => { state.war.enemyStrength-=10; state.war.tension-=5; state.war.expenditure+=5; state.inflation+=1.0; } },
-            'go': { name: 'GROUND OPS', effect: () => { state.war.enemyStrength-=35; state.war.casualties+=150; state.war.expenditure+=25; state.war.tension+=20; state.approval-=5; } },
+            'as': { name: 'AIRSTRIKE', effect: () => { state.war.enemyStrength-=20; state.war.expenditure+=15; state.war.tension+=10; queueNews("[THEATER] Heavy bombardment reported in hostile territory.", 0); } },
+            'bd': { name: 'BLOCKADE', effect: () => { state.war.enemyStrength-=10; state.war.tension-=5; state.war.expenditure+=5; state.inflation+=1.0; queueNews("[THEATER] Naval assets establish strict embargo.", 0); } },
+            'go': { name: 'GROUND OPS', effect: () => { state.war.enemyStrength-=35; state.war.casualties+=150; state.war.expenditure+=25; state.war.tension+=20; state.approval-=5; queueNews("[THEATER] Boots on the ground. Infantry engaged in heavy combat.", 0); } },
             'so': { name: 'SPECIAL OPS', effect: () => { 
-                if(Math.random() > 0.4) { state.war.enemyStrength-=15; state.war.expenditure+=2; print("GENERAL: Surgical strike successful. HVT eliminated.", 'general'); } 
-                else { state.war.casualties+=25; state.war.tension+=15; state.approval-=3; print("GENERAL: Mission compromised! We lost a squad. The press is all over this.", 'danger'); }
+                if(Math.random() > 0.4) { state.war.enemyStrength-=15; state.war.expenditure+=2; queueNews("[THEATER] Unconfirmed reports of surgical strike on High Value Target.", 0); } 
+                else { state.war.casualties+=25; state.war.tension+=15; state.approval-=3; queueNews("[BREAKING] Covert team compromised. Casualties reported.", 0); }
             } },
-            'es': { name: 'ESCALATE (SURGE)', effect: () => { state.war.enemyStrength-=50; state.war.casualties+=400; state.war.expenditure+=50; state.war.tension+=40; state.approval-=12; } },
-            'wd': { name: 'WITHDRAW', effect: () => { endWar(false); } },
-            'nk': { name: 'NUCLEAR STRIKE', effect: () => { state.war.enemyStrength=0; state.war.tension=100; state.war.casualties+=50000; state.approval-=50; } }
+            'es': { name: 'ESCALATE (SURGE)', effect: () => { state.war.enemyStrength-=50; state.war.casualties+=400; state.war.expenditure+=50; state.war.tension+=40; state.approval-=12; queueNews("[BREAKING] MASSIVE SURGE DEPLOYED. CASUALTIES MOUNTING RAPIDLY.", 0); } },
+            'wd': { name: 'WITHDRAW', effect: () => { endWar(false); queueNews("[THEATER] Evacuation orders given. Forces retreating.", 0); } }
         };
 
         const darkCommands = {
-            'ff': { name: 'FEAR CAMPAIGN', effect: () => { state.dark.narrative+=15; state.dark.paranoia+=20; state.approval+=8; state.dark.trust-=10; print("CHIEF OF STAFF: False flags planted. The public is terrified and looking to you for safety.", 'chief'); } },
-            'ce': { name: 'CENSOR ENGINE', effect: () => { state.dark.compliance+=20; state.dark.narrative+=10; state.dark.paranoia+=15; state.dark.trust-=15; print("CHIEF OF STAFF: Algorithms adjusted. Dissenting accounts have been shadowbanned.", 'chief'); } },
-            'sm': { name: 'SUBSIDIZE MEDIA', effect: () => { state.dark.compliance+=25; state.gdp-=0.5; state.inflation+=0.5; print("CHIEF OF STAFF: Bailouts distributed to friendly networks. Editorials are glowing.", 'chief'); } },
-            'sl': { name: 'STRATEGIC LEAK', effect: () => { state.approval+=10; state.dark.trust-=20; state.congress-=15; print("CHIEF OF STAFF: Intelligence weaponized against political rivals. It's dirty, but effective.", 'chief'); } },
-            'ex': { name: 'EXIT OPS', effect: () => { endDarkOps(); } }
+            'ff': { name: 'FEAR CAMPAIGN', effect: () => { state.dark.narrative+=15; state.dark.paranoia+=20; state.approval+=8; state.dark.trust-=10; queueNews("[DOMESTIC] Public terrified amidst new, coordinated threat warnings.", 0); queueNews("[FRINGE] Unverified claims of state-sponsored provocations trending.", 2); } },
+            'ce': { name: 'CENSOR ENGINE', effect: () => { state.dark.compliance+=20; state.dark.narrative+=10; state.dark.paranoia+=15; state.dark.trust-=15; queueNews("[TECH] Algorithms aggressively filtering 'harmful' content.", 0); } },
+            'sm': { name: 'SUBSIDIZE MEDIA', effect: () => { state.dark.compliance+=25; state.gdp-=0.5; state.inflation+=0.5; queueNews("[MEDIA] Networks report record profits following new federal grants.", 0); } },
+            'sl': { name: 'STRATEGIC LEAK', effect: () => { state.approval+=10; state.dark.trust-=20; state.congress-=15; queueNews("[SCANDAL] Devastating intelligence leak cripples political opposition.", 0); } },
+            'ex': { name: 'EXIT OPS', effect: () => { endDarkOps(); queueNews("[POLITICS] Spin cycle slows down as administration pivots.", 0); } }
         };
 
         const crisisProfiles = {
@@ -397,6 +425,50 @@
         function focusTerminal() { if (state.isOn && !DOM.cmd.disabled) DOM.cmd.focus(); }
         function enableInput() { DOM.inputLine.style.display = 'flex'; DOM.cmd.disabled = false; focusTerminal(); }
         function print(text, type = 'system') { const div = document.createElement('div'); div.className = `block ${type}`; div.textContent = text; DOM.log.appendChild(div); DOM.log.scrollTop = DOM.log.scrollHeight; }
+
+        // --- NEWS TICKER LOGIC ---
+        function queueNews(msg, delayTurns) {
+            if (delayTurns === 0) state.newsQueue.push(msg);
+            else state.futureNews.push({ turn: state.turn + delayTurns, msg: msg });
+        }
+
+        function generateAmbientNews() {
+            let news = [];
+            if (state.inflation > 5.0) news.push("[WSJ] Consumer purchasing power evaporating at checkout lines.");
+            if (state.unemployment > 7.0) news.push("[LABOR] Breadlines form as job losses mount nationwide.");
+            if (state.sp500 > 5500) news.push("[BLOOMBERG] Irrational exuberance pushes equities to all-time highs.");
+            if (state.sp500 < 4000) news.push("[CNBC] Trillions wiped out in historic market rout.");
+            if (state.mode === 'dark' && state.dark.paranoia > 60) news.push("[FRINGE] Unverified reports of state-sponsored provocations trending across alternative networks.");
+            return news;
+        }
+
+        function processTicker() {
+            // Move future news to active queue if time is right
+            state.futureNews = state.futureNews.filter(event => {
+                if (event.turn <= state.turn) {
+                    state.newsQueue.push(event.msg);
+                    return false; // Remove from future
+                }
+                return true; // Keep in future
+            });
+
+            // Combine specific news with ambient state news
+            let activeNews = [...state.newsQueue, ...generateAmbientNews()];
+            if (activeNews.length === 0) activeNews = ["[SYSTEM] ALL METRICS NOMINAL. NO BREAKING REPORTS AT THIS TIME."];
+            
+            // Randomize array to mix ambient and specific news
+            activeNews.sort(() => Math.random() - 0.5);
+            
+            const tickerString = activeNews.join(" &nbsp;&nbsp; // &nbsp;&nbsp; ");
+            DOM.tickerContent.innerHTML = tickerString;
+            
+            // Reset CSS animation
+            DOM.tickerContent.style.animation = 'none';
+            DOM.tickerContent.offsetHeight; 
+            DOM.tickerContent.style.animation = null; 
+            
+            state.newsQueue = []; // Clear for next turn
+        }
 
         function renderMacroDashboard() {
             DOM.telemetry.className = 'panel'; DOM.screen.className = 'crt-screen on'; DOM.prompt.textContent = "POTUS:~$";
@@ -493,25 +565,27 @@
 
         function togglePower() {
             if (state.isOn) {
-                state.isOn = false; DOM.pLed.classList.remove('on'); DOM.screen.className = 'crt-screen'; DOM.inputLine.style.display = 'none'; stopHum();
+                state.isOn = false; DOM.pLed.classList.remove('on'); DOM.screen.className = 'crt-screen'; DOM.inputLine.style.display = 'none'; DOM.tickerBar.style.visibility = 'hidden'; stopHum();
                 return;
             }
             state.isOn = true; if(state.soundEnabled) { initAudio(); playHum(); } playThump();
-            DOM.pLed.classList.add('on'); DOM.screen.className = 'crt-screen on';
+            DOM.pLed.classList.add('on'); DOM.screen.className = 'crt-screen on'; DOM.tickerBar.style.visibility = 'visible';
             
             setTimeout(() => {
                 print("SYSTEM MILTON BOOT... OK"); print("AUTHORIZATION: POTUS... CONFIRMED");
                 print("--------------------------------------------------");
-                print("TUTORIAL:\nYour Chief of Staff advises on political optics.\nType [am] to ASK MILTON for structural economic analysis.\nAchieve the Targets in the [TGT] column to stabilize.\nChain directives using commas (e.g., rr, cs, ta).");
+                print("TUTORIAL:\nYour Chief of Staff advises on political optics.\nType [am] to ASK MILTON for structural economic analysis.\nAchieve the Targets in the [TARGET] column to stabilize.\nChain directives using commas (e.g., rr, cs, ta).");
                 print("--------------------------------------------------\n");
-                DOM.dash.style.visibility = 'visible'; updateDashboard(); runTurn();
+                DOM.dash.style.visibility = 'visible'; 
+                processTicker();
+                updateDashboard(); runTurn();
             }, 800);
         }
 
         function triggerWarMode() {
             state.mode = 'war'; state.war.active = true; state.war.enemyStrength = 100; state.war.tension = 50; state.war.casualties = 0; state.war.expenditure = 0;
             playAlarm(false); print("\nWARNING: KINETIC ACTION AUTHORIZED.", 'danger'); print("GENERAL: We are locked and loaded. Reduce Enemy Strength to 0. Watch the tension gauge—if it hits 100%, it's M.A.D.", 'general');
-            updateDashboard(); setTimeout(updateDashboard, 100); 
+            updateDashboard(); setTimeout(updateDashboard, 100);
         }
 
         function triggerDarkMode() {
@@ -523,8 +597,8 @@
         function endWar(victory) {
             state.mode = 'macro'; state.war.active = false;
             print("\nTHEATER COMMAND DISENGAGED. Total Expenditure: $"+state.war.expenditure+" Billion.", 'system');
-            if (victory) { print("GENERAL: Enemy surrender confirmed. Total victory.", 'general'); state.approval += 25; } 
-            else { print("GENERAL: Withdrawal complete. We are tucking tail.", 'general'); state.approval -= 20; }
+            if (victory) { print("GENERAL: Enemy surrender confirmed. Total victory.", 'general'); state.approval += 25; queueNews("[GLOBAL] Hostilities conclude with decisive American victory.", 0); } 
+            else { print("GENERAL: Withdrawal complete. We are tucking tail.", 'general'); state.approval -= 20; queueNews("[GLOBAL] Forces withdraw. Administration facing harsh criticism.", 0); }
             print(`MILTON: The war is over. Time to pay the bill. This deficit spending will now hit the macro economy.`, 'milton');
             state.inflation += (state.war.expenditure / 10); state.gdp -= (state.war.expenditure / 20);
             updateDashboard(); setTimeout(advanceTimeline, 1000);
@@ -533,8 +607,8 @@
         function endDarkOps() {
             state.mode = 'macro'; print("\nSHADOW PROTOCOLS DISENGAGED.", 'system');
             print("MILTON: Welcome back to reality, Mr. President. I hope the manipulation was worth the institutional decay. The market will now react to your fractured societal trust.", 'milton');
-            if (state.dark.paranoia > 70) { state.gdp -= 2.0; print("SYSTEM: High public paranoia severely hampering economic investment.", 'danger'); }
-            if (state.dark.trust < 40) { state.fedCredibility -= 20; state.congress -= 15; print("SYSTEM: Institutional collapse eroding Federal credibility.", 'danger'); }
+            if (state.dark.paranoia > 70) { state.gdp -= 2.0; print("SYSTEM: High public paranoia severely hampering economic investment.", 'danger'); queueNews("[MARKETS] Investment stalls amid unprecedented civil paranoia.", 0); }
+            if (state.dark.trust < 40) { state.fedCredibility -= 20; state.congress -= 15; print("SYSTEM: Institutional collapse eroding Federal credibility.", 'danger'); queueNews("[ECONOMY] Global faith in US institutions faltering.", 0); }
             updateDashboard(); setTimeout(advanceTimeline, 1000);
         }
 
@@ -551,13 +625,15 @@
             if (state.mode !== 'macro') return; 
             state.miltonAskedThisTurn = false; state.currentCrisis = determineCrisis();
             updateDashboard(); print("\n--------------------------------------------------");
-            if (state.currentCrisis === 'geopolitical') { playAlarm(); print("SYSTEM: GLOBAL OIL SHOCK. STRAIT OF HORMUZ BLOCKADED.", 'danger'); }
+            if (state.currentCrisis === 'geopolitical') { playAlarm(); print("SYSTEM: GLOBAL OIL SHOCK. STRAIT OF HORMUZ BLOCKADED.", 'danger'); queueNews("[BREAKING] Strait of Hormuz blocked. Energy markets in panic.", 0); processTicker(); }
             print(crisisProfiles[state.currentCrisis].chief, 'chief');
             enableInput();
         }
 
         function advanceTimeline() {
             state.turn++; state.monthsToElection -= 4;
+            processTicker();
+
             if (state.monthsToElection <= 0) {
                 print("\n--- ELECTION DAY ---", 'system');
                 if (state.inflation > 5 || state.unemployment > 8) { print("CHIEF OF STAFF: It's a blowout. The voters blamed us for the economy. We lost.", 'chief'); print("MILTON: As expected. You ignored the monetary fundamentals.", 'milton'); } 
@@ -615,10 +691,10 @@
 
             if (state.mode === 'macro') {
                 state.hasPriceControls = false; 
-                if (activeCommands.includes('rr') && activeCommands.includes('cr')) { activeCommands = activeCommands.filter(c => c !== 'rr' && c !== 'cr'); synergies.push("MILTON: Raising and cutting rates simultaneously? The Fed is paralyzed. Zero net monetary effect."); }
-                if (activeCommands.includes('ta') && activeCommands.includes('ft')) { activeCommands = activeCommands.filter(c => c !== 'ta' && c !== 'ft'); synergies.push("MILTON: Tariffs and free trade on the same day. Customs is ignoring you. Zero net trade effect."); }
+                if (activeCommands.includes('rr') && activeCommands.includes('cr')) { activeCommands = activeCommands.filter(c => c !== 'rr' && c !== 'cr'); synergies.push("MILTON: Raising and cutting rates simultaneously? The Fed is paralyzed. Zero net monetary effect."); queueNews("[FED WATCH] Chaotic mixed signaling from Chairman paralyzes markets.", 0); }
+                if (activeCommands.includes('ta') && activeCommands.includes('ft')) { activeCommands = activeCommands.filter(c => c !== 'ta' && c !== 'ft'); synergies.push("MILTON: Tariffs and free trade on the same day. Customs is ignoring you. Zero net trade effect."); queueNews("[TRADE] Commerce Department issues conflicting directives.", 0); }
                 if ((activeCommands.includes('is') || activeCommands.includes('ms')) && activeCommands.includes('cs')) { activeCommands = activeCommands.filter(c => c !== 'is' && c !== 'ms' && c !== 'cs'); synergies.push("MILTON: Massive spending combined with severe austerity? The treasury is deadlocked. Zero net fiscal effect."); }
-                if ((activeCommands.includes('ms') || activeCommands.includes('is')) && activeCommands.includes('pc')) { synergies.push("MILTON: Stimulus combined with price controls... You've flooded the market with cash but made it illegal for prices to adjust. Prepare for catastrophic supply shortages."); state.gdp -= 3.0; state.approval -= 8; }
+                if ((activeCommands.includes('ms') || activeCommands.includes('is')) && activeCommands.includes('pc')) { synergies.push("MILTON: Stimulus combined with price controls... You've flooded the market with cash but made it illegal for prices to adjust. Prepare for catastrophic supply shortages."); state.gdp -= 3.0; state.approval -= 8; queueNews("[CRISIS] Severe shortages reported as demand vastly outstrips price-capped supply.", 1); }
             }
 
             if (state.mode === 'war') {
@@ -653,11 +729,9 @@
 
             if (state.mode === 'dark') {
                 if (!activeCommands.includes('ex')) {
-                    // Decay logic for dark mode
-                    state.dark.narrative = Math.max(0, state.dark.narrative - 5); // Truth naturally leaks
+                    state.dark.narrative = Math.max(0, state.dark.narrative - 5); 
                     state.dark.compliance = Math.max(0, state.dark.compliance - 2); 
                     
-                    // Clamps
                     state.dark.narrative = Math.min(100, state.dark.narrative);
                     state.dark.compliance = Math.min(100, state.dark.compliance);
                     state.dark.paranoia = Math.min(100, state.dark.paranoia);
@@ -667,7 +741,7 @@
                     updateDashboard();
                     
                     if (state.dark.paranoia >= 90) { print("SYSTEM: PUBLIC PARANOIA CRITICAL. MASS CIVIL UNREST DETECTED.", 'danger'); state.approval -= 15; }
-                    if (state.dark.trust <= 10) { print("SYSTEM: INSTITUTIONAL TRUST EVAPORATED. DOLLAR LOSING RESERVE STATUS.", 'danger'); state.inflation += 2.0; }
+                    if (state.dark.trust <= 10) { print("SYSTEM: INSTITUTIONAL TRUST EVAPORATED. DOLLAR LOSING RESERVE STATUS.", 'danger'); state.inflation += 2.0; queueNews("[GLOBAL] Investors dump dollar assets amid collapse of US institutional integrity.", 0); }
                     if (state.approval <= 15) { print("SYSTEM: RIOTERS BREACH GATES. CONGRESS VOTES IMPEACHMENT.", 'danger'); return; }
                     
                     setTimeout(enableInput, 500);
