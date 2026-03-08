@@ -1,796 +1,507 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tactical Naval Simulator v2.0</title>
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-    :root {
-        --bg: #050a0e;
-        --panel-bg: #0a1118;
-        --grid-bg: #021014;
-        --grid-border: #0a2e38;
-        --text: #00ffcc;
-        --alert: #ff2a2a;
-        --ship: #0088ff;
-        --metal-dark: #2a2d34;
-        --metal-light: #8d99ae;
-    }
-    
-    body {
-        background-color: var(--bg);
-        color: var(--text);
-        font-family: 'Share Tech Mono', monospace;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        overflow-x: hidden;
-        text-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
-    }
-
-    /* CRT Scanline Effect */
-    body::after {
-        content: " ";
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-        z-index: 2;
-        background-size: 100% 2px, 3px 100%;
-        pointer-events: none;
-    }
-
-    h1, h2, h3 { 
-        margin: 5px 0; 
-        text-transform: uppercase; 
-        letter-spacing: 2px;
-        border-bottom: 1px solid var(--grid-border);
-        padding-bottom: 5px;
-    }
-    
-    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-    .heavy-shake { animation: heavy-shake 0.8s cubic-bezier(.36,.07,.19,.97) both; }
-    .flash-red { animation: flash 0.5s ease-in-out 3; }
-    
-    @keyframes shake {
-        10%, 90% { transform: translate3d(-1px, 0, 0); }
-        20%, 80% { transform: translate3d(2px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-        40%, 60% { transform: translate3d(4px, 0, 0); }
-    }
-    @keyframes heavy-shake {
-        10%, 90% { transform: translate3d(-4px, -4px, 0); }
-        20%, 80% { transform: translate3d(8px, 8px, 0); }
-        30%, 50%, 70% { transform: translate3d(-12px, -12px, 0); }
-        40%, 60% { transform: translate3d(12px, 12px, 0); }
-    }
-    @keyframes flash {
-        0%, 100% { background-color: var(--bg); }
-        50% { background-color: #4a0000; }
-    }
-    @keyframes sink {
-        0% { opacity: 1; transform: scale(1); }
-        100% { opacity: 0; transform: scale(0.1); background-color: #000; border-color: #000; }
-    }
-    @keyframes radar-sweep {
-        0% { box-shadow: inset 0 0 10px rgba(0,255,204,0.1); }
-        50% { box-shadow: inset 0 0 30px rgba(0,255,204,0.4); }
-        100% { box-shadow: inset 0 0 10px rgba(0,255,204,0.1); }
-    }
-
-    #game-board {
-        display: flex;
-        gap: 40px;
-        margin-bottom: 20px;
-        position: relative;
-        z-index: 3;
-    }
-    .grid-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: var(--panel-bg);
-        padding: 15px;
-        border: 2px solid var(--grid-border);
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-    }
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(12, 35px);
-        grid-template-rows: repeat(12, 35px);
-        gap: 1px;
-        background-color: var(--grid-border);
-        border: 2px solid var(--text);
-        position: relative;
-        animation: radar-sweep 4s infinite linear;
-    }
-    .cell {
-        width: 35px;
-        height: 35px;
-        background-color: var(--grid-bg);
-        cursor: crosshair;
-        box-sizing: border-box;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 12px;
-        transition: background-color 0.2s;
-    }
-    .enemy-cell:hover { background-color: rgba(0, 255, 204, 0.2); }
-    
-    .cell.ship { background-color: var(--ship); box-shadow: inset 0 0 10px rgba(0,136,255,0.8); }
-    .cell.hit { background-color: var(--alert); box-shadow: inset 0 0 15px rgba(255,42,42,0.8); border: 1px solid #fff; }
-    .cell.miss { background-color: #2b3a42; border: 1px solid #455a64; }
-    .cell.sunk { animation: sink 2s forwards; }
-
-    #controls-container {
-        display: flex;
-        gap: 20px;
-        width: 100%;
-        max-width: 1000px;
-        justify-content: space-between;
-        position: relative;
-        z-index: 3;
-    }
-    .panel {
-        border: 2px solid var(--grid-border);
-        padding: 20px;
-        background: var(--panel-bg);
-        flex: 1;
-        box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    }
-    
-    /* Military Toggles */
-    .switch-group {
-        display: flex;
-        gap: 30px;
-        margin-bottom: 25px;
-        justify-content: center;
-        background: #0f151c;
-        padding: 15px;
-        border: 1px inset #2a3d4f;
-    }
-    .military-toggle {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        cursor: pointer;
-    }
-    .military-toggle input { display: none; }
-    
-    .toggle-body {
-        width: 30px;
-        height: 60px;
-        background: linear-gradient(180deg, #111 0%, #333 100%);
-        border: 2px solid #000;
-        border-radius: 4px;
-        position: relative;
-        box-shadow: inset 0 2px 5px rgba(255,255,255,0.1), 0 5px 10px rgba(0,0,0,0.8);
-    }
-    
-    .toggle-lever {
-        position: absolute;
-        bottom: 5px;
-        left: 5px;
-        width: 16px;
-        height: 30px;
-        background: linear-gradient(90deg, var(--metal-light) 0%, #fff 50%, var(--metal-light) 100%);
-        border-radius: 2px;
-        transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 5px 5px rgba(0,0,0,0.9);
-        border-bottom: 2px solid var(--metal-dark);
-    }
-
-    .military-toggle input:checked + .toggle-body .toggle-lever {
-        bottom: 25px;
-        box-shadow: 0 -5px 5px rgba(0,0,0,0.9);
-        border-bottom: none;
-        border-top: 2px solid var(--metal-dark);
-        background: linear-gradient(90deg, #ffaaaa 0%, #ff5555 50%, #aa0000 100%); /* Turns red when armed */
-    }
-
-    .led-indicator {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: #111;
-        border: 1px solid #000;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
-        transition: 0.3s;
-    }
-
-    .military-toggle input:checked ~ .led-indicator {
-        background: #ff2a2a;
-        box-shadow: 0 0 10px #ff2a2a, inset 0 0 5px #fff;
-    }
-
-    .toggle-label { font-weight: bold; font-size: 14px; letter-spacing: 1px; color: #8d99ae; }
-
-    /* Fire Button */
-    #fire-btn {
-        width: 100%;
-        padding: 20px;
-        font-family: 'Share Tech Mono', monospace;
-        font-weight: bold;
-        font-size: 24px;
-        background: linear-gradient(180deg, #333 0%, #111 100%);
-        color: #555;
-        border: 4px solid #222;
-        border-radius: 8px;
-        cursor: not-allowed;
-        transition: 0.3s;
-        text-shadow: 1px 1px 0px #000;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-    }
-    #fire-btn.armed {
-        background: linear-gradient(180deg, #ff4444 0%, #aa0000 100%);
-        color: white;
-        border-color: #ffaaaa;
-        cursor: pointer;
-        box-shadow: 0 0 20px rgba(255, 42, 42, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.4);
-        text-shadow: 0 0 5px #fff;
-    }
-    #fire-btn.armed:active {
-        background: #880000;
-        box-shadow: inset 0 10px 20px rgba(0,0,0,0.8);
-        border-color: #550000;
-        transform: translateY(2px);
-    }
-
-    /* Move Controls */
-    .move-controls {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin-top: 15px;
-    }
-    .move-controls button {
-        background: #0f1c26;
-        color: var(--text);
-        font-family: 'Share Tech Mono', monospace;
-        border: 1px solid var(--grid-border);
-        padding: 10px 5px;
-        cursor: pointer;
-        transition: 0.2s;
-        text-transform: uppercase;
-    }
-    .move-controls button:hover { 
-        background: var(--text); 
-        color: var(--bg); 
-        box-shadow: 0 0 10px var(--text);
-    }
-    #target-coords { 
-        font-size: 24px; 
-        font-weight: bold; 
-        margin-bottom: 15px; 
-        color: #ffcc00; 
-        text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
-        background: #000;
-        padding: 10px;
-        border: 1px solid #333;
-        text-align: center;
-    }
-    
-    select { 
-        background: #000; 
-        color: var(--text); 
-        border: 1px solid var(--grid-border); 
-        padding: 10px; 
-        width: 100%; 
-        font-family: 'Share Tech Mono', monospace;
-        font-size: 16px;
-    }
-
-    #intel-log {
-        height: 150px;
-        overflow-y: auto;
-        background: #000;
-        border: 1px solid var(--grid-border);
-        padding: 10px;
-        font-size: 14px;
-        line-height: 1.4;
-        color: #00ffcc;
-    }
-    #intel-log div { border-bottom: 1px dashed #113333; padding-bottom: 3px; margin-bottom: 3px; }
-    
-    /* Scrollbar styling */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #000; border-left: 1px solid var(--grid-border); }
-    ::-webkit-scrollbar-thumb { background: var(--grid-border); }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economic Power Simulator</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fafafa;
+            color: var(--primary);
+        }
+        
+        h1, h2 {
+            font-weight: normal;
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 6px;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--accent);
+            display: block;
+        }
+        
+        .metric-label {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        
+        .decision-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .choice {
+            margin: 15px 0;
+            padding: 18px 20px;
+            border: 2px solid var(--light);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .choice:hover {
+            border-color: var(--accent);
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        
+        .choice strong {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        .event-log {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 12px;
+            border-left: 4px solid var(--accent);
+            margin: 10px 0;
+            background: #f8f9fa;
+            font-size: 0.95em;
+        }
+        
+        .narrative {
+            font-style: italic;
+            color: #555;
+            margin: 20px 0;
+            padding: 18px;
+            background: var(--light);
+            border-radius: 6px;
+            line-height: 1.7;
+        }
+        
+        .teaching-note {
+            background: #fff9e6;
+            padding: 20px;
+            border-left: 4px solid var(--warning);
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+        
+        .teaching-note h3 {
+            margin-top: 0;
+            color: #7f6a00;
+        }
+        
+        .reset-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            margin-top: 15px;
+        }
+        
+        .reset-btn:hover {
+            background: #2980b9;
+        }
+        
+        @media (max-width: 600px) {
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            body {
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<h1>Tactical Naval Simulator v2.0</h1>
-
-<div id="game-board">
-    <div class="grid-container">
-        <h2>Local Fleet (Player)</h2>
-        <div id="player-grid" class="grid"></div>
+    <div class="header">
+        <h1>Economic Power Simulator</h1>
+        <p style="font-size: 0.95em; color: #666; margin-top: -10px;">
+            A teaching tool showing how incentives shape policy choices and economic outcomes.<br>
+            Inspired by Milton Friedman's approach to institutional analysis.
+        </p>
     </div>
-    <div class="grid-container">
-        <h2>Hostile Waters (Enemy)</h2>
-        <div id="enemy-grid" class="grid"></div>
+    
+    <div class="teaching-note">
+        <h3>How This Works</h3>
+        <p>You're the President in early 2026. Each decision creates trade-offs—short-term wins often have long-term costs, and vice versa. The goal isn't to "win" but to see how different choices affect your economy, credibility, and accountability.</p>
     </div>
-</div>
-
-<div id="controls-container">
-    <div class="panel">
-        <h3>Weapons Control</h3>
-        <div id="target-coords">TARGET: [ NONE ]</div>
-        <div class="switch-group">
-            <label class="military-toggle">
-                <input type="checkbox" id="sw-power" onchange="checkArming()">
-                <div class="toggle-body"><div class="toggle-lever"></div></div>
-                <div class="led-indicator"></div>
-                <span class="toggle-label">PWR</span>
-            </label>
-            <label class="military-toggle">
-                <input type="checkbox" id="sw-fuel" onchange="checkArming()">
-                <div class="toggle-body"><div class="toggle-lever"></div></div>
-                <div class="led-indicator"></div>
-                <span class="toggle-label">FUEL</span>
-            </label>
-            <label class="military-toggle">
-                <input type="checkbox" id="sw-ign" onchange="checkArming()">
-                <div class="toggle-body"><div class="toggle-lever"></div></div>
-                <div class="led-indicator"></div>
-                <span class="toggle-label">IGN</span>
-            </label>
+    
+    <h2 style="font-size: 1.3em; margin-top: 0;">Current Economic Dashboard</h2>
+    <div class="dashboard">
+        <div class="metric">
+            <span class="metric-value" id="gdp">4.2%</span>
+            <span class="metric-label">GDP Growth</span>
         </div>
-        <button id="fire-btn" disabled onclick="executeFire()">LAUNCH</button>
-    </div>
-
-    <div class="panel">
-        <h3>Fleet Command (Move)</h3>
-        <select id="ship-selector"></select>
-        <div class="move-controls">
-            <div></div>
-            <button onclick="moveShip(0, -1)">N 1</button>
-            <button onclick="moveShip(0, -2)">N 2</button>
-            <button onclick="moveShip(-1, 0)">W 1</button>
-            <button onclick="moveShip(0, 0)">HOLD</button>
-            <button onclick="moveShip(1, 0)">E 1</button>
-            <button onclick="moveShip(-2, 0)">W 2</button>
-            <button onclick="moveShip(0, 1)">S 1</button>
-            <button onclick="moveShip(0, 2)">S 2</button>
-            <div></div><div></div><button onclick="moveShip(2, 0)">E 2</button>
+        <div class="metric">
+            <span class="metric-value" id="unemployment">3.8%</span>
+            <span class="metric-label">Unemployment</span>
+        </div>
+        <div class="metric">
+            <span class="metric-value" id="inflation">2.1%</span>
+            <span class="metric-label">Inflation (PCE)</span>
+        </div>
+        <div class="metric">
+            <span class="metric-value" id="approval">58%</span>
+            <span class="metric-label">Approval Rating</span>
+        </div>
+        <div class="metric">
+            <span class="metric-value" id="fed-credibility">72%</span>
+            <span class="metric-label">Fed Credibility</span>
         </div>
     </div>
-
-    <div class="panel">
-        <h3>SIGINT (Delay: 5 Turns)</h3>
-        <div id="intel-log">Awaiting reconnaissance data...</div>
+    
+    <h3 style="font-size: 1.1em;">Current Situation</h3>
+    <div class="narrative" id="narrative">
+        Welcome to Q1 2026. The economy is growing at 4.2%, unemployment sits at 3.8% (near full employment), and inflation has cooled to 2.1%. But there's tension building with Iran, and crude oil prices are edging up from $75 toward $80 per barrel.
     </div>
-</div>
-
-<script>
-// --- AUDIO ENGINE ---
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-let actx;
-
-function initAudio() {
-    if(!actx) actx = new AudioContext();
-    if(actx.state === 'suspended') actx.resume();
-}
-
-function playTone(freq, type, duration) {
-    if(!actx) return;
-    const osc = actx.createOscillator();
-    const gain = actx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, actx.currentTime);
-    gain.gain.setValueAtTime(0.1, actx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(actx.destination);
-    osc.start();
-    osc.stop(actx.currentTime + duration);
-}
-
-function playFire() {
-    playTone(100, 'sawtooth', 0.5);
-    setTimeout(() => playTone(50, 'square', 0.5), 100);
-}
-
-function playMiss() {
-    if(!actx) return;
-    const osc = actx.createOscillator();
-    const gain = actx.createGain();
-    osc.frequency.setValueAtTime(400, actx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(50, actx.currentTime + 1);
-    gain.gain.setValueAtTime(0.1, actx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, actx.currentTime + 1);
-    osc.connect(gain);
-    gain.connect(actx.destination);
-    osc.start();
-    osc.stop(actx.currentTime + 1);
-}
-
-function playExplosion() {
-    if(!actx) return;
-    const bufferSize = actx.sampleRate * 2; 
-    const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-    }
-    const noise = actx.createBufferSource();
-    noise.buffer = buffer;
-    const filter = actx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 1000;
-    const gain = actx.createGain();
-    gain.gain.setValueAtTime(1, actx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 1.5);
     
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(actx.destination);
-    noise.start();
-}
-
-function playAlarm() {
-    if(!actx) return;
-    for(let i=0; i<4; i++) {
-        setTimeout(() => {
-            const osc = actx.createOscillator();
-            const gain = actx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(800, actx.currentTime);
-            gain.gain.setValueAtTime(0.1, actx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, actx.currentTime + 0.3);
-            osc.connect(gain);
-            gain.connect(actx.destination);
-            osc.start();
-            osc.stop(actx.currentTime + 0.3);
-        }, i * 400);
-    }
-}
-
-function playSink() {
-    if(!actx) return;
-    const osc = actx.createOscillator();
-    const gain = actx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(200, actx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(20, actx.currentTime + 2);
-    gain.gain.setValueAtTime(0.2, actx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, actx.currentTime + 2);
-    osc.connect(gain);
-    gain.connect(actx.destination);
-    osc.start();
-    osc.stop(actx.currentTime + 2);
-}
-
-// --- GAME LOGIC ---
-const GRID_SIZE = 12;
-const SHIP_TYPES = [
-    { name: "Carrier", size: 5 },
-    { name: "Battleship", size: 4 },
-    { name: "Cruiser", size: 3 },
-    { name: "Submarine", size: 3 },
-    { name: "Destroyer", size: 2 },
-    { name: "Frigate", size: 2 },
-    { name: "Corvette", size: 2 },
-    { name: "Patrol", size: 1 }
-];
-
-let playerShips = [];
-let enemyShips = [];
-let playerBoard = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
-let enemyBoard = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
-let turn = 0;
-let intelHistory = [];
-let selectedTarget = null;
-let gameActive = true;
-
-function createGrid(id, isEnemy) {
-    const grid = document.getElementById(id);
-    grid.innerHTML = '';
-    for(let y=0; y<GRID_SIZE; y++) {
-        for(let x=0; x<GRID_SIZE; x++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell' + (isEnemy ? ' enemy-cell' : '');
-            cell.dataset.x = x;
-            cell.dataset.y = y;
-            if(isEnemy) {
-                cell.onclick = () => selectTarget(x, y);
-            }
-            grid.appendChild(cell);
-        }
-    }
-}
-
-function isValidPlacement(board, coords) {
-    for(let c of coords) {
-        if(c.x < 0 || c.x >= GRID_SIZE || c.y < 0 || c.y >= GRID_SIZE) return false;
-        if(board[c.y][c.x] !== null) return false;
-    }
-    return true;
-}
-
-function generateShips(board, shipArray) {
-    SHIP_TYPES.forEach((type, idx) => {
-        let placed = false;
-        while(!placed) {
-            let x = Math.floor(Math.random() * GRID_SIZE);
-            let y = Math.floor(Math.random() * GRID_SIZE);
-            let horizontal = Math.random() > 0.5;
-            let coords = [];
-            for(let i=0; i<type.size; i++) {
-                coords.push({ x: x + (horizontal ? i : 0), y: y + (horizontal ? 0 : i), hit: false });
-            }
-            if(isValidPlacement(board, coords)) {
-                coords.forEach(c => board[c.y][c.x] = idx);
-                shipArray.push({ id: idx, ...type, coords: coords, sunk: false });
-                placed = true;
-            }
-        }
-    });
-}
-
-function drawPlayerGrid() {
-    const cells = document.getElementById('player-grid').children;
-    for(let cell of cells) {
-        cell.className = 'cell';
-        let x = parseInt(cell.dataset.x);
-        let y = parseInt(cell.dataset.y);
-        let val = playerBoard[y][x];
-        if(val !== null) {
-            if(val === 'M') cell.classList.add('miss');
-            else if(val === 'H') cell.classList.add('hit');
-            else {
-                cell.classList.add('ship');
-                let ship = playerShips[val];
-                let isHit = ship.coords.find(c => c.x === x && c.y === y).hit;
-                if(isHit) cell.classList.add('hit');
-                if(ship.sunk) cell.classList.add('sunk');
-            }
-        }
-    }
-}
-
-function drawEnemyGrid(reveal = false) {
-    const cells = document.getElementById('enemy-grid').children;
-    for(let cell of cells) {
-        cell.className = 'cell enemy-cell';
-        let x = parseInt(cell.dataset.x);
-        let y = parseInt(cell.dataset.y);
-        let val = enemyBoard[y][x];
-        if(selectedTarget && selectedTarget.x === x && selectedTarget.y === y) {
-            cell.style.border = '2px solid #ffcc00';
-            cell.style.boxShadow = 'inset 0 0 15px rgba(255, 204, 0, 0.5)';
-        } else {
-            cell.style.border = 'none';
-            cell.style.boxShadow = 'none';
-        }
-
-        if(val === 'M') cell.classList.add('miss');
-        else if(val === 'H') cell.classList.add('hit');
-        else if(val !== null && val !== 'M' && val !== 'H') {
-            let ship = enemyShips[val];
-            let isHit = ship.coords.find(c => c.x === x && c.y === y).hit;
-            if(isHit) cell.classList.add('hit');
-            if(ship.sunk) cell.classList.add('sunk');
-            if(reveal && !isHit && !ship.sunk) cell.classList.add('ship');
-        }
-    }
-}
-
-function selectTarget(x, y) {
-    if(!gameActive) return;
-    initAudio();
-    selectedTarget = {x, y};
-    document.getElementById('target-coords').innerText = `TARGET: [ X:${x.toString().padStart(2, '0')} Y:${y.toString().padStart(2, '0')} ]`;
-    drawEnemyGrid();
-}
-
-function checkArming() {
-    initAudio();
-    const p = document.getElementById('sw-power').checked;
-    const f = document.getElementById('sw-fuel').checked;
-    const i = document.getElementById('sw-ign').checked;
-    const btn = document.getElementById('fire-btn');
-    if(p && f && i) {
-        btn.disabled = false;
-        btn.classList.add('armed');
-    } else {
-        btn.disabled = true;
-        btn.classList.remove('armed');
-    }
-}
-
-function resetFirePanel() {
-    document.getElementById('sw-power').checked = false;
-    document.getElementById('sw-fuel').checked = false;
-    document.getElementById('sw-ign').checked = false;
-    checkArming();
-    selectedTarget = null;
-    document.getElementById('target-coords').innerText = `TARGET: [ NONE ]`;
-}
-
-function logMessage(msg) {
-    const log = document.getElementById('intel-log');
-    const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" });
-    log.innerHTML += `<div>[${time}] T${turn}: ${msg}</div>`;
-    log.scrollTop = log.scrollHeight;
-}
-
-function recordIntel() {
-    let intel = [];
-    enemyShips.forEach(s => {
-        if(!s.sunk) s.coords.forEach(c => intel.push(`(${c.x},${c.y})`));
-    });
-    intelHistory.push(intel);
-}
-
-function deliverIntel() {
-    if(turn >= 5) {
-        let oldIntel = intelHistory[turn - 5];
-        logMessage(`SIGINT ALERT: Hostile signatures detected 5 cycles ago at: ${oldIntel.slice(0,4).join(' ')}...`);
-    }
-}
-
-function moveShip(dx, dy) {
-    if(!gameActive) return;
-    const sel = document.getElementById('ship-selector');
-    const shipId = parseInt(sel.value);
-    let ship = playerShips[shipId];
-    if(ship.sunk) { alert("Vessel destroyed. Cannot execute maneuver."); return; }
-    if(dx === 0 && dy === 0) return;
-
-    ship.coords.forEach(c => playerBoard[c.y][c.x] = null);
-    
-    let newCoords = ship.coords.map(c => ({ x: c.x + dx, y: c.y + dy, hit: c.hit }));
-    
-    if(isValidPlacement(playerBoard, newCoords)) {
-        ship.coords = newCoords;
-        logMessage(`${ship.name} maneuver complete.`);
-    } else {
-        logMessage(`NAV ERROR: Invalid coordinates for ${ship.name}.`);
-    }
-    
-    ship.coords.forEach(c => playerBoard[c.y][c.x] = shipId);
-    drawPlayerGrid();
-}
-
-function executeFire() {
-    if(!gameActive || !selectedTarget) return;
-    document.body.classList.remove('shake', 'heavy-shake');
-    void document.body.offsetWidth;
-    document.body.classList.add('shake');
-    playFire();
-
-    setTimeout(() => {
-        let x = selectedTarget.x;
-        let y = selectedTarget.y;
-        let val = enemyBoard[y][x];
-
-        if(val !== null && val !== 'M' && val !== 'H') {
-            enemyBoard[y][x] = 'H';
-            let ship = enemyShips[val];
-            ship.coords.find(c => c.x === x && c.y === y).hit = true;
-            playExplosion();
-            document.body.classList.remove('shake');
-            void document.body.offsetWidth;
-            document.body.classList.add('heavy-shake');
-            
-            if(ship.coords.every(c => c.hit)) {
-                ship.sunk = true;
-                playSink();
-                logMessage(`TARGET DESTROYED: Enemy ${ship.name} eliminated.`);
-                checkWinCondition();
-            } else {
-                logMessage(`IMPACT CONFIRMED at X:${x} Y:${y}`);
-            }
-        } else if (val === null) {
-            enemyBoard[y][x] = 'M';
-            playMiss();
-            logMessage(`ORDNANCE MISSED at X:${x} Y:${y}`);
-        }
-
-        drawEnemyGrid();
-        resetFirePanel();
+    <h3 style="font-size: 1.1em; margin-top: 30px;">What do you do?</h3>
+    <div class="decision-panel" id="choices">
+        <div class="choice" onclick="makeDecision('cut-rates')">
+            <strong>Cut Interest Rates (0.25%)</strong>
+            The Fed has been holding rates steady. Business leaders are pressuring you to push for cuts before the election.
+            <br><br>
+            <em style="font-size: 0.9em; color: #666;">Short-term: Markets rally, +2% approval | Long-term: Risks inflation if oil keeps rising</em>
+        </div>
         
-        recordIntel();
-        deliverIntel();
+        <div class="choice" onclick="makeDecision('increase-spending')">
+            <strong>Increase Government Spending (+$50B Infrastructure)</strong>
+            Propose a new infrastructure package funded by deficit spending.
+            <br><br>
+            <em style="font-size: 0.9em; color: #666;">Short-term: Creates jobs, +0.6% GDP | Long-term: Adds inflation pressure</em>
+        </div>
         
-        if(gameActive) setTimeout(computerTurn, 1000);
-    }, 500);
-}
-
-function computerTurn() {
-    playAlarm();
+        <div class="choice" onclick="makeDecision('pressure-fed')">
+            <strong>Publicly Pressure Fed to Cut Rates</strong>
+            Hold a press conference criticizing the Fed for being too slow. Demand they cut rates now.
+            <br><br>
+            <em style="font-size: 0.9em; color: #666;">Short-term: Markets rally, +3% approval | Long-term: Erodes Fed credibility permanently</em>
+        </div>
+        
+        <div class="choice" onclick="makeDecision('do-nothing')">
+            <strong>Do Nothing / Trust Institutions</strong>
+            Let the Federal Reserve make independent decisions. Maintain institutional independence.
+            <br><br>
+            <em style="font-size: 0.9em; color: #666;">Short-term: No immediate win | Long-term: Preserves credibility, but oil may spike naturally</em>
+        </div>
+    </div>
     
-    setTimeout(() => {
-        let x, y;
-        do {
-            x = Math.floor(Math.random() * GRID_SIZE);
-            y = Math.floor(Math.random() * GRID_SIZE);
-        } while (playerBoard[y][x] === 'M' || playerBoard[y][x] === 'H');
-
-        let val = playerBoard[y][x];
-        if(val !== null && val !== 'M' && val !== 'H') {
-            playerBoard[y][x] = 'H';
-            let ship = playerShips[val];
-            ship.coords.find(c => c.x === x && c.y === y).hit = true;
-            
-            document.body.classList.remove('flash-red', 'heavy-shake');
-            void document.body.offsetWidth;
-            document.body.classList.add('flash-red', 'heavy-shake');
-            playExplosion();
-
-            if(ship.coords.every(c => c.hit)) {
-                ship.sunk = true;
-                playSink();
-                logMessage(`CRITICAL DAMAGE: Local ${ship.name} lost.`);
-                checkWinCondition();
-            }
-        } else if (val === null) {
-             playerBoard[y][x] = 'M';
-             playMiss();
-        }
-
-        let aliveEnemies = enemyShips.filter(s => !s.sunk);
-        if(aliveEnemies.length > 0) {
-            let s = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
-            let dx = Math.floor(Math.random() * 3) - 1;
-            let dy = Math.floor(Math.random() * 3) - 1;
-            
-            s.coords.forEach(c => { if(enemyBoard[c.y][c.x] === s.id) enemyBoard[c.y][c.x] = null; });
-            let newCoords = s.coords.map(c => ({ x: c.x + dx, y: c.y + dy, hit: c.hit }));
-            if(isValidPlacement(enemyBoard, newCoords)) {
-                s.coords = newCoords;
-            }
-            s.coords.forEach(c => { if(!c.hit) enemyBoard[c.y][c.x] = s.id; else enemyBoard[c.y][c.x] = 'H'; });
-        }
-
-        drawPlayerGrid();
-        turn++;
-    }, 1200);
-}
-
-function checkWinCondition() {
-    if(enemyShips.every(s => s.sunk)) {
-        gameActive = false;
-        alert("MISSION ACCOMPLISHED. Hostile fleet eradicated.");
-        drawEnemyGrid(true);
-    } else if (playerShips.every(s => s.sunk)) {
-        gameActive = false;
-        alert("MISSION FAILED. Local fleet destroyed.");
-        drawEnemyGrid(true);
-    }
-}
-
-function initGame() {
-    createGrid('player-grid', false);
-    createGrid('enemy-grid', true);
-    generateShips(playerBoard, playerShips);
-    generateShips(enemyBoard, enemyShips);
-    drawPlayerGrid();
-    drawEnemyGrid();
+    <h3 style="font-size: 1.1em;">Event Log</h3>
+    <div class="event-log" id="eventLog">
+        <div class="log-entry">Q1 2026: Simulation begins. Economy at 4.2% growth, 3.8% unemployment.</div>
+    </div>
     
-    const sel = document.getElementById('ship-selector');
-    playerShips.forEach((s, i) => {
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.innerText = s.name;
-        sel.appendChild(opt);
-    });
-}
-
-initGame();
-</script>
+    <button class="reset-btn" onclick="resetGame()">Reset Simulation</button>
+    
+    <script>
+        // Game state
+        let gameState = {
+            gdp: 4.2,
+            unemployment: 3.8,
+            inflation: 2.1,
+            approval: 58,
+            fedCredibility: 72,
+            transparency: 60,
+            turn: 1,
+            oilPrice: 75,
+            electionIn: 4 // quarters until next major election
+        };
+        
+        function updateDashboard() {
+            document.getElementById('gdp').textContent = gameState.gdp.toFixed(1) + '%';
+            document.getElementById('unemployment').textContent = gameState.unemployment.toFixed(1) + '%';
+            document.getElementById('inflation').textContent = gameState.inflation.toFixed(1) + '%';
+            document.getElementById('approval').textContent = Math.round(gameState.approval) + '%';
+            document.getElementById('fed-credibility').textContent = Math.round(gameState.fedCredibility) + '%';
+            
+            // Color coding based on thresholds
+            const gdpEl = document.getElementById('gdp');
+            gdpEl.style.color = gameState.gdp < 1.5 ? 'var(--danger)' : 
+                               gameState.gdp > 3.0 ? 'var(--success)' : 'var(--accent)';
+            
+            const unemploymentEl = document.getElementById('unemployment');
+            unemploymentEl.style.color = gameState.unemployment > 5.0 ? 'var(--danger)' : 
+                                        gameState.unemployment < 3.5 ? 'var(--warning)' : 'var(--accent)';
+            
+            const inflationEl = document.getElementById('inflation');
+            inflationEl.style.color = gameState.inflation > 3.0 ? 'var(--danger)' : 
+                                    gameState.inflation < 1.5 ? 'var(--success)' : 'var(--accent)';
+        }
+        
+        function addLogEntry(text, type = 'neutral') {
+            const logDiv = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            let prefix = '';
+            if (type === 'warning') prefix = '⚠️ ';
+            else if (type === 'success') prefix = '✅ ';
+            else if (type === 'danger') prefix = '❌ ';
+            
+            entry.textContent = `${prefix}Q${gameState.turn} 2026: ${text}`;
+            logDiv.insertBefore(entry, logDiv.lastElementChild);
+        }
+        
+        function makeDecision(choice) {
+            let effects = {};
+            
+            switch(choice) {
+                case 'cut-rates':
+                    gameState.gdp += 0.35;
+                    gameState.approval += 2;
+                    gameState.inflation += 0.28;
+                    effects.msg = 'Interest rates cut by 0.25%. Markets rally briefly. GDP boosts in short term.';
+                    break;
+                    
+                case 'increase-spending':
+                    gameState.gdp += 0.55;
+                    gameState.unemployment -= 0.12;
+                    gameState.inflation += 0.48;
+                    effects.msg = 'New infrastructure spending announced (+$50B). GDP boosts temporarily, unemployment dips slightly.';
+                    break;
+                    
+                case 'pressure-fed':
+                    gameState.approval += 3.2;
+                    gameState.fedCredibility -= 9.5;
+                    gameState.gdp += 0.18;
+                    gameState.inflation += 0.42;
+                    effects.msg = 'You publicly pressure the Fed to cut rates. Markets rally but credibility takes a hit.';
+                    break;
+                    
+                case 'do-nothing':
+                    gameState.transparency += 3;
+                    // Natural oil shock chance (no intervention)
+                    if (Math.random() > 0.5) {
+                        const oilShock = 6 + Math.floor(Math.random() * 8);
+                        gameState.oilPrice += oilShock;
+                        gameState.inflation += (oilShock / 100).toFixed(2);
+                        effects.msg = `Oil prices jump to $${gameState.oilPrice.toFixed(0)}/barrel amid Middle East tensions. Inflation rises.`;
+                    } else {
+                        effects.msg = 'Economy continues steady growth without intervention. Oil remains stable.';
+                    }
+                    break;
+            }
+            
+            // Add decision effect to log
+            addLogEntry(effects.msg);
+            
+            // Apply natural consequences based on thresholds
+            if (gameState.inflation > 3.0 && gameState.approval > 65) {
+                const pain = Math.max(1, (gameState.inflation - 3.0) * 2);
+                gameState.approval -= pain;
+                addLogEntry(`⚠️ Inflation above 3% starts hurting voter sentiment despite high approval (-${pain.toFixed(1)}%).`, 'warning');
+            }
+            
+            if (gameState.fedCredibility < 45 && gameState.fedCredibility > 0) {
+                addLogEntry(`⚠️ Fed credibility crisis approaching! Policy uncertainty rising.`, 'warning');
+            }
+            
+            if (gameState.fedCredibility <= 25) {
+                gameState.gdp -= 0.6;
+                gameState.inflation += 0.9;
+                addLogEntry(`❌ Fed credibility collapsed! Policy becomes erratic, inflation spikes sharply.`, 'danger');
+            }
+            
+            if (gameState.approval < 38 && gameState.electionIn === 1) {
+                endGame('You lose the election decisively due to economic mismanagement. Voters punished poor choices.', 'danger');
+                return;
+            }
+            
+            // Game over conditions
+            if (gameState.gdp > 6.0 || gameState.inflation > 5.0) {
+                addLogEntry(`⚠️ Extreme economic conditions! Policy shift urgent or crisis imminent.`, 'warning');
+            }
+            
+            if (gameState.approval < 25 && gameState.electionIn <= 2) {
+                endGame('Approval ratings collapsed. You face recall pressure or certain defeat.', 'danger');
+                return;
+            }
+            
+            // Advance turn
+            gameState.turn++;
+            if (gameState.electionIn > 0) gameState.electionIn--;
+            
+            updateDashboard();
+            
+            // Update narrative for next decision
+            const narrative = document.getElementById('narrative');
+            let gdpColor = gameState.gdp < 1.5 ? 'red' : 
+                          gameState.gdp > 3.0 ? '#27ae60' : '#3498db';
+            let inflationColor = gameState.inflation > 3.0 ? 'red' : '#27ae60';
+            
+            narrative.innerHTML = `
+                <strong>Current Situation:</strong><br>
+                Growth stands at ${gameState.gdp.toFixed(1)}% (color: ${gdpColor}), unemployment at ${gameState.unemployment.toFixed(1)}%. 
+                Inflation has moved to ${gameState.inflation.toFixed(1)}% after your last decision.
+                Oil is trading around $${gameState.oilPrice.toFixed(0)}/barrel, and the Fed's credibility sits at ${Math.round(gameState.fedCredibility)}%.<br><br>
+                <em>You have ${gameState.electionIn > 0 ? gameState.electionIn : 'no'} quarters until the next major election.</em>
+            `;
+            
+            // Check for end game after max turns
+            if (gameState.turn >= 10) {
+                let verdict = '';
+                if (gameState.approval >= 55 && gameState.inflation <= 3.0) {
+                    verdict = 'You maintained stability and won re-election! Good institutional management.';
+                } else if (gameState.fedCredibility < 40 || gameState.inflation > 4.0) {
+                    verdict = 'Stagflation or credibility crisis damaged your term. Voters were unhappy.';
+                } else {
+                    verdict = 'Mixed results—some wins, some costs. The trade-offs are clear in the data.';
+                }
+                endGame(verdict);
+            }
+        }
+        
+        function endGame(reason, type = 'neutral') {
+            const decisionPanel = document.getElementById('choices');
+            
+            // Build final metrics display
+            let verdictHtml = `
+                <div style="background: ${type === 'danger' ? '#e74c3c20' : type === 'success' ? '#27ae6020' : '#f8f9fa'}; padding: 25px; border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: ${type === 'danger' ? '#c0392b' : type === 'success' ? '#1e8449' : '#2c3e50'}">Simulation Complete</h3>
+                    <p><strong>${reason}</strong></p>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 6px; margin: 15px 0;">
+                        <strong>Final Metrics:</strong>
+                        <ul style="margin: 10px 0; line-height: 1.8;">
+                            <li>GDP Growth: ${gameState.gdp.toFixed(1)}%</li>
+                            <li>Unemployment: ${gameState.unemployment.toFixed(1)}%</li>
+                            <li>Inflation (PCE): ${gameState.inflation.toFixed(1)}%</li>
+                            <li>Final Approval: ${Math.round(gameState.approval)}%</li>
+                            <li>Fed Credibility: ${Math.round(gameState.fedCredibility)}%</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="teaching-note">
+                        <h3 style="margin-top: 0;">What This Shows</h3>
+                        <p>Every policy decision creates trade-offs. There are no perfect choices—only different paths with different costs and winners/losers.</p>
+                        <p><strong>The key question isn't "what's the right choice?" but:</strong></p>
+                        <ul style="margin: 10px 0;">
+                            <li>Who pays for this choice?</li>
+                            <li>When do we find out who's responsible?</li>
+                            <li>How do institutions constrain or enable bad decisions?</li>
+                        </ul>
+                    </div>
+                    
+                    <p style="font-style: italic; color: #666; margin-top: 20px;">
+                        This simulator is inspired by Milton Friedman's approach: showing how institutions shape incentives, not just outcomes. When transparency erodes and accountability weakens, bad policy becomes more likely—and ordinary people pay the price.
+                    </p>
+                </div>
+            `;
+            
+            decisionPanel.innerHTML = verdictHtml;
+            addLogEntry(`SIMULATION ENDS: ${reason}`, type);
+        }
+        
+        function resetGame() {
+            gameState = {
+                gdp: 4.2,
+                unemployment: 3.8,
+                inflation: 2.1,
+                approval: 58,
+                fedCredibility: 72,
+                transparency: 60,
+                turn: 1,
+                oilPrice: 75,
+                electionIn: 4
+            };
+            
+            document.getElementById('eventLog').innerHTML = '<div class="log-entry">Q1 2026: Simulation reset. Economy at 4.2% growth, 3.8% unemployment.</div>';
+            
+            const choicesPanel = document.getElementById('choices');
+            choicesPanel.innerHTML = `
+                <div class="choice" onclick="makeDecision('cut-rates')">
+                    <strong>Cut Interest Rates (0.25%)</strong>
+                    The Fed has been holding rates steady. Business leaders are pressuring you to push for cuts before the election.
+                    <br><br>
+                    <em style="font-size: 0.9em; color: #666;">Short-term: Markets rally, +2% approval | Long-term: Risks inflation if oil keeps rising</em>
+                </div>
+                
+                <div class="choice" onclick="makeDecision('increase-spending')">
+                    <strong>Increase Government Spending (+$50B Infrastructure)</strong>
+                    Propose a new infrastructure package funded by deficit spending.
+                    <br><br>
+                    <em style="font-size: 0.9em; color: #666;">Short-term: Creates jobs, +0.6% GDP | Long-term: Adds inflation pressure</em>
+                </div>
+                
+                <div class="choice" onclick="makeDecision('pressure-fed')">
+                    <strong>Publicly Pressure Fed to Cut Rates</strong>
+                    Hold a press conference criticizing the Fed for being too slow. Demand they cut rates now.
+                    <br><br>
+                    <em style="font-size: 0.9em; color: #666;">Short-term: Markets rally, +3% approval | Long-term: Erodes Fed credibility permanently</em>
+                </div>
+                
+                <div class="choice" onclick="makeDecision('do-nothing')">
+                    <strong>Do Nothing / Trust Institutions</strong>
+                    Let the Federal Reserve make independent decisions. Maintain institutional independence.
+                    <br><br>
+                    <em style="font-size: 0.9em; color: #666;">Short-term: No immediate win | Long-term: Preserves credibility, but oil may spike naturally</em>
+                </div>
+            `;
+            
+            document.getElementById('narrative').innerHTML = 'Welcome to Q1 2026. The economy is growing at 4.2%, unemployment sits at 3.8% (near full employment), and inflation has cooled to 2.1%. But there\'s tension building with Iran, and crude oil prices are edging up from $75 toward $80 per barrel.';
+            
+            updateDashboard();
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            updateDashboard();
+        });
+    </script>
 </body>
 </html>
